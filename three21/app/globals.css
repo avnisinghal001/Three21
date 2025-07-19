@@ -1,4 +1,4 @@
-/* Light Mode Theme Palette - Enhanced shadcn inspired */
+/* Light Mode Theme List - Enhanced shadcn inspired */
 :root {
   --background: #ffffff;
   --foreground: #09090b;
@@ -47,7 +47,7 @@
   --error-rgb: 239, 68, 68;
 }
 
-/* Dark Mode Theme Palette */
+/* Dark Mode Theme List */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0f0f13;

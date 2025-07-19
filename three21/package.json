@@ -20,6 +20,7 @@
     "next": "15.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-feather": "^2.0.10",
     "react-markdown": "^10.1.0",
     "three": "^0.177.0"
   },

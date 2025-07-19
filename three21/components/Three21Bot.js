@@ -385,7 +385,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    padding: 1.5rem;
+                    padding: 1rem;
                     animation: overlayFadeIn 0.4s ease;
                 }
 
@@ -401,10 +401,10 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 .three21-bot-container {
                     width: 100%;
                     max-width: 56rem;
-                    height: 90vh;
+                    height: 85vh;
                     background: #ffffff;
                     border: 1px solid #e5e7eb;
-                    border-radius: 24px;
+                    border-radius: 20px;
                     display: flex;
                     flex-direction: column;
                     overflow: hidden;
@@ -436,7 +436,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 .three21-bot-header {
                     background: #f8fafc;
                     border-bottom: 1px solid #e5e7eb;
-                    padding: 1.5rem 2rem;
+                    padding: 1rem 1.5rem;
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
@@ -456,19 +456,19 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 .header-content {
                     display: flex;
                     align-items: center;
-                    gap: 1rem;
+                    gap: 0.75rem;
                     flex: 1;
                 }
 
                 .bot-avatar {
-                    width: 3.5rem;
-                    height: 3.5rem;
+                    width: 3rem;
+                    height: 3rem;
                     background: #3b82f6;
-                    border-radius: 16px;
+                    border-radius: 14px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 1.5rem;
+                    font-size: 1.25rem;
                     color: white;
                     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
                 }
@@ -476,13 +476,13 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 .bot-info h3 {
                     color: #111827;
                     margin: 0;
-                    font-size: 1.25rem;
+                    font-size: 1.125rem;
                     font-weight: 700;
                 }
 
                 .bot-status {
                     color: #6b7280;
-                    font-size: 0.875rem;
+                    font-size: 0.8rem;
                     display: block;
                     margin-top: 0.25rem;
                     font-weight: 500;
@@ -521,17 +521,17 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 .three21-bot-messages {
                     flex: 1;
                     overflow-y: auto;
-                    padding: 1.5rem 2rem;
+                    padding: 1rem 1.5rem;
                     display: flex;
                     flex-direction: column;
-                    gap: 1.5rem;
+                    gap: 1rem;
                     background: #ffffff;
                 }
 
                 .message {
                     display: flex;
                     flex-direction: column;
-                    gap: 0.5rem;
+                    gap: 0.375rem;
                 }
 
                 .message.user {
@@ -544,16 +544,16 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
 
                 .message-content {
                     max-width: 85%;
-                    padding: 1.25rem 1.5rem;
-                    border-radius: 20px;
-                    font-size: 0.875rem;
-                    line-height: 1.6;
+                    padding: 1rem 1.25rem;
+                    border-radius: 16px;
+                    font-size: 0.8rem;
+                    line-height: 1.5;
                 }
 
                 .message.user .message-content {
                     background: #3b82f6;
                     color: white;
-                    border-bottom-right-radius: 8px;
+                    border-bottom-right-radius: 6px;
                     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
                 }
 
@@ -561,14 +561,14 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     background: #f8fafc;
                     color: #111827;
                     border: 1px solid #e5e7eb;
-                    border-bottom-left-radius: 8px;
+                    border-bottom-left-radius: 6px;
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 }
 
                 .message-timestamp {
-                    font-size: 0.75rem;
+                    font-size: 0.7rem;
                     color: #9ca3af;
-                    margin: 0 1.5rem;
+                    margin: 0 1.25rem;
                     font-weight: 500;
                 }
 
@@ -618,13 +618,13 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 .three21-bot-input {
                     background: #f8fafc;
                     border-top: 1px solid #e5e7eb;
-                    padding: 1.5rem 2rem;
+                    padding: 1rem 1.5rem;
                 }
 
                 .quick-actions {
                     display: flex;
-                    gap: 0.875rem;
-                    margin-bottom: 1rem;
+                    gap: 0.75rem;
+                    margin-bottom: 0.75rem;
                     align-items: center;
                     flex-wrap: wrap;
                 }
@@ -633,9 +633,9 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     background: #ffffff;
                     border: 1px solid #d1d5db;
                     color: #374151;
-                    padding: 0.625rem 1.125rem;
-                    border-radius: 12px;
-                    font-size: 0.8rem;
+                    padding: 0.5rem 0.875rem;
+                    border-radius: 10px;
+                    font-size: 0.75rem;
                     font-weight: 600;
                     cursor: pointer;
                     transition: all 0.2s ease;
@@ -657,7 +657,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
 
                 .screenshot-ready {
                     color: #10b981;
-                    font-size: 0.8rem;
+                    font-size: 0.75rem;
                     font-weight: 600;
                     display: flex;
                     align-items: center;
@@ -666,7 +666,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
 
                 .input-form {
                     display: flex;
-                    gap: 0.875rem;
+                    gap: 0.75rem;
                     align-items: flex-end;
                 }
 
@@ -674,16 +674,16 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     flex: 1;
                     background: #ffffff;
                     border: 1px solid #d1d5db;
-                    border-radius: 16px;
-                    padding: 1rem 1.25rem;
+                    border-radius: 14px;
+                    padding: 0.875rem 1rem;
                     color: #111827;
-                    font-size: 0.875rem;
+                    font-size: 0.8rem;
                     outline: none;
                     transition: all 0.2s ease;
                     resize: none;
-                    min-height: 3rem;
-                    max-height: 8rem;
-                    line-height: 1.5;
+                    min-height: 2.75rem;
+                    max-height: 7rem;
+                    line-height: 1.4;
                 }
 
                 .message-input:focus {
@@ -699,10 +699,10 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     background: #3b82f6;
                     border: none;
                     color: white;
-                    width: 3rem;
-                    height: 3rem;
-                    border-radius: 16px;
-                    font-size: 1.125rem;
+                    width: 2.75rem;
+                    height: 2.75rem;
+                    border-radius: 14px;
+                    font-size: 1rem;
                     cursor: pointer;
                     transition: all 0.2s ease;
                     display: flex;
@@ -723,45 +723,45 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     transform: none;
                 }
 
-                /* Enhanced Markdown Styles */
+                /* Enhanced Markdown Styles - More Compact */
                 .markdown-h1 {
                     color: #111827;
-                    font-size: 1.5rem;
-                    margin: 0 0 1rem 0;
+                    font-size: 1.25rem;
+                    margin: 0 0 0.75rem 0;
                     font-weight: 700;
                     line-height: 1.3;
                 }
 
                 .markdown-h2 {
                     color: #111827;
-                    font-size: 1.25rem;
-                    margin: 1.5rem 0 0.75rem 0;
+                    font-size: 1.125rem;
+                    margin: 1rem 0 0.5rem 0;
                     font-weight: 600;
                     line-height: 1.3;
                 }
 
                 .markdown-h3 {
                     color: #374151;
-                    font-size: 1rem;
-                    margin: 1.25rem 0 0.5rem 0;
+                    font-size: 0.9rem;
+                    margin: 0.75rem 0 0.375rem 0;
                     font-weight: 600;
                     line-height: 1.4;
                 }
 
                 .markdown-p {
-                    margin: 0.75rem 0;
-                    line-height: 1.7;
+                    margin: 0.5rem 0;
+                    line-height: 1.6;
                     color: #111827;
                 }
 
                 .markdown-ul {
-                    margin: 0.75rem 0;
-                    padding-left: 1.5rem;
+                    margin: 0.5rem 0;
+                    padding-left: 1.25rem;
                 }
 
                 .markdown-li {
-                    margin: 0.5rem 0;
-                    line-height: 1.6;
+                    margin: 0.375rem 0;
+                    line-height: 1.5;
                     color: #111827;
                 }
 
@@ -773,10 +773,10 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 .markdown-code {
                     background: #f3f4f6;
                     color: #374151;
-                    padding: 0.25rem 0.5rem;
-                    border-radius: 6px;
+                    padding: 0.2rem 0.4rem;
+                    border-radius: 5px;
                     font-family: 'Courier New', monospace;
-                    font-size: 0.8rem;
+                    font-size: 0.75rem;
                     border: 1px solid #e5e7eb;
                 }
 
@@ -800,37 +800,40 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     background: #9ca3af;
                 }
 
-                /* Responsive Design */
+                /* Mobile-First Responsive Design */
                 @media (max-width: 768px) {
                     .three21-bot-overlay {
-                        padding: 1rem;
+                        padding: 0.5rem;
                     }
                     
                     .three21-bot-container {
-                        height: 95vh;
-                        border-radius: 20px;
+                        height: 98vh;
+                        border-radius: 16px;
                         max-width: none;
                     }
                     
                     .three21-bot-header {
-                        padding: 1.25rem 1.5rem;
+                        padding: 0.75rem 1rem;
                     }
                     
                     .three21-bot-messages {
-                        padding: 1.25rem 1.5rem;
+                        padding: 0.75rem 1rem;
+                        gap: 1rem;
                     }
                     
                     .three21-bot-input {
-                        padding: 1.25rem 1.5rem;
+                        padding: 0.75rem 1rem;
                     }
                     
                     .message-content {
-                        max-width: 95%;
-                        padding: 1rem 1.25rem;
+                        max-width: 98%;
+                        padding: 0.75rem 1rem;
+                        font-size: 0.8rem;
+                        line-height: 1.5;
                     }
                     
                     .header-content {
-                        gap: 0.75rem;
+                        gap: 0.5rem;
                     }
                     
                     .selected-part {
@@ -838,13 +841,234 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     }
                     
                     .quick-actions {
-                        gap: 0.5rem;
+                        gap: 0.375rem;
+                        margin-bottom: 0.75rem;
                     }
                     
                     .bot-avatar {
-                        width: 3rem;
-                        height: 3rem;
-                        font-size: 1.25rem;
+                        width: 2.5rem;
+                        height: 2.5rem;
+                        font-size: 1rem;
+                        border-radius: 12px;
+                    }
+                    
+                    .bot-info h3 {
+                        font-size: 1rem;
+                    }
+                    
+                    .bot-status {
+                        font-size: 0.75rem;
+                    }
+                    
+                    .close-button {
+                        width: 2rem;
+                        height: 2rem;
+                        font-size: 0.875rem;
+                        border-radius: 10px;
+                    }
+                    
+                    .quick-action-btn {
+                        padding: 0.5rem 0.75rem;
+                        font-size: 0.75rem;
+                    }
+                    
+                    .message-input {
+                        padding: 0.75rem 1rem;
+                        font-size: 0.8rem;
+                        min-height: 2.5rem;
+                        border-radius: 12px;
+                    }
+                    
+                    .send-button {
+                        width: 2.5rem;
+                        height: 2.5rem;
+                        font-size: 1rem;
+                        border-radius: 12px;
+                    }
+                    
+                    .input-form {
+                        gap: 0.5rem;
+                    }
+                    
+                    .message-timestamp {
+                        font-size: 0.65rem;
+                        margin: 0 1rem;
+                    }
+                    
+                    .screenshot-indicator {
+                        margin-top: 0.5rem;
+                        padding: 0.375rem 0.625rem;
+                        font-size: 0.7rem;
+                        border-radius: 8px;
+                    }
+                    
+                    .screenshot-ready {
+                        font-size: 0.7rem;
+                    }
+                    
+                    /* Enhanced Markdown Mobile Styles */
+                    .markdown-h1 {
+                        font-size: 1.125rem;
+                        margin: 0 0 0.5rem 0;
+                    }
+                    
+                    .markdown-h2 {
+                        font-size: 1rem;
+                        margin: 1rem 0 0.5rem 0;
+                    }
+                    
+                    .markdown-h3 {
+                        font-size: 0.875rem;
+                        margin: 0.75rem 0 0.375rem 0;
+                    }
+                    
+                    .markdown-p {
+                        margin: 0.5rem 0;
+                        line-height: 1.5;
+                        font-size: 0.8rem;
+                    }
+                    
+                    .markdown-ul {
+                        margin: 0.5rem 0;
+                        padding-left: 1rem;
+                    }
+                    
+                    .markdown-li {
+                        margin: 0.25rem 0;
+                        line-height: 1.4;
+                        font-size: 0.8rem;
+                    }
+                    
+                    .markdown-code {
+                        padding: 0.125rem 0.375rem;
+                        font-size: 0.7rem;
+                        border-radius: 4px;
+                    }
+                    
+                    .typing-indicator {
+                        padding: 0.5rem;
+                    }
+                    
+                    .typing-indicator span {
+                        width: 0.375rem;
+                        height: 0.375rem;
+                    }
+                }
+                
+                /* Extra small screens */
+                @media (max-width: 480px) {
+                    .three21-bot-overlay {
+                        padding: 0.25rem;
+                    }
+                    
+                    .three21-bot-container {
+                        height: 100vh;
+                        border-radius: 12px;
+                    }
+                    
+                    .three21-bot-header {
+                        padding: 0.5rem 0.75rem;
+                    }
+                    
+                    .three21-bot-messages {
+                        padding: 0.5rem 0.75rem;
+                        gap: 0.75rem;
+                    }
+                    
+                    .three21-bot-input {
+                        padding: 0.5rem 0.75rem;
+                    }
+                    
+                    .message-content {
+                        padding: 0.5rem 0.75rem;
+                        font-size: 0.75rem;
+                        line-height: 1.4;
+                    }
+                    
+                    .bot-avatar {
+                        width: 2rem;
+                        height: 2rem;
+                        font-size: 0.875rem;
+                        border-radius: 10px;
+                    }
+                    
+                    .bot-info h3 {
+                        font-size: 0.875rem;
+                    }
+                    
+                    .bot-status {
+                        font-size: 0.65rem;
+                    }
+                    
+                    .close-button {
+                        width: 1.75rem;
+                        height: 1.75rem;
+                        font-size: 0.75rem;
+                        border-radius: 8px;
+                    }
+                    
+                    .quick-action-btn {
+                        padding: 0.375rem 0.5rem;
+                        font-size: 0.65rem;
+                    }
+                    
+                    .message-input {
+                        padding: 0.5rem 0.75rem;
+                        font-size: 0.75rem;
+                        min-height: 2.25rem;
+                        border-radius: 10px;
+                    }
+                    
+                    .send-button {
+                        width: 2.25rem;
+                        height: 2.25rem;
+                        font-size: 0.875rem;
+                        border-radius: 10px;
+                    }
+                    
+                    .quick-actions {
+                        margin-bottom: 0.5rem;
+                    }
+                    
+                    .message-timestamp {
+                        font-size: 0.6rem;
+                        margin: 0 0.75rem;
+                    }
+                    
+                    /* Ultra-compact markdown for tiny screens */
+                    .markdown-h1 {
+                        font-size: 1rem;
+                        margin: 0 0 0.375rem 0;
+                    }
+                    
+                    .markdown-h2 {
+                        font-size: 0.875rem;
+                        margin: 0.75rem 0 0.375rem 0;
+                    }
+                    
+                    .markdown-h3 {
+                        font-size: 0.8rem;
+                        margin: 0.5rem 0 0.25rem 0;
+                    }
+                    
+                    .markdown-p {
+                        margin: 0.375rem 0;
+                        line-height: 1.4;
+                        font-size: 0.75rem;
+                    }
+                    
+                    .markdown-li {
+                        margin: 0.125rem 0;
+                        font-size: 0.75rem;
+                    }
+                    
+                    .markdown-ul {
+                        padding-left: 0.75rem;
+                    }
+                    
+                    .markdown-code {
+                        font-size: 0.65rem;
+                        padding: 0.1rem 0.25rem;
                     }
                 }
 
