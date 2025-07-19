@@ -25,6 +25,7 @@ FOCUS EXCLUSIVELY ON:
 - Material appearances and surface features
 - Assembly connections and mechanisms
 - Engineering design features
+- Dont Focus on UI elements (never never), only analyze the 3D model geometry, components, and highlighted parts
 
 **Analysis Framework:**
 - **Form & Function**: Analyze how geometry relates to intended function
@@ -63,17 +64,38 @@ export async function POST(req) {
         if (modelInfo) {
             contextPrompt += `\n\n**📋 Model Context (User-Provided Information):**`;
             
-            // Enhanced model context
+            // Enhanced model context with required fields emphasized
             if (modelInfo.filename) contextPrompt += `\n- **Filename**: ${modelInfo.filename}`;
-            if (modelInfo.description) contextPrompt += `\n- **User Description**: "${modelInfo.description}" (Use this to inform your analysis)`;
-            if (modelInfo.category) contextPrompt += `\n- **Category**: ${modelInfo.category}`;
+            
+            // REQUIRED FIELDS - These are now mandatory and critical for analysis
+            if (modelInfo.description) {
+                contextPrompt += `\n- **🎯 User Description**: "${modelInfo.description}"`;
+                contextPrompt += `\n  ↳ *Use this description as primary context for all analysis*`;
+            }
+            
+            if (modelInfo.category) {
+                contextPrompt += `\n- **📂 Category**: ${modelInfo.category}`;
+                contextPrompt += `\n  ↳ *Apply ${modelInfo.category}-specific analysis standards and practices*`;
+            }
+            
+            if (modelInfo.purpose) {
+                contextPrompt += `\n- **🎲 Purpose**: ${modelInfo.purpose}`;
+                contextPrompt += `\n  ↳ *Focus analysis on ${modelInfo.purpose} requirements and considerations*`;
+            }
+            
+            if (modelInfo.complexity) {
+                contextPrompt += `\n- **⚙️ Complexity Level**: ${modelInfo.complexity}`;
+                contextPrompt += `\n  ↳ *Adjust analysis depth and technical detail for ${modelInfo.complexity} complexity*`;
+            }
+            
+            if (modelInfo.tags && modelInfo.tags.length > 0) {
+                contextPrompt += `\n- **🏷️ Tags**: ${modelInfo.tags.join(', ')}`;
+                contextPrompt += `\n  ↳ *Incorporate these keywords and domain expertise in analysis*`;
+            }
+            
+            // Additional fields if provided
             if (modelInfo.manufacturer) contextPrompt += `\n- **Manufacturer**: ${modelInfo.manufacturer}`;
             if (modelInfo.material) contextPrompt += `\n- **Stated Material**: ${modelInfo.material}`;
-            if (modelInfo.purpose) contextPrompt += `\n- **Intended Purpose**: ${modelInfo.purpose}`;
-            if (modelInfo.tags && modelInfo.tags.length > 0) {
-                contextPrompt += `\n- **Tags**: ${modelInfo.tags.join(', ')}`;
-            }
-            if (modelInfo.complexity) contextPrompt += `\n- **Complexity Level**: ${modelInfo.complexity}`;
             
             // Demo mode specific context
             if (modelInfo.isDemoMode && modelInfo.demoInfo) {
@@ -82,6 +104,14 @@ export async function POST(req) {
                 contextPrompt += `\n- **Demo Description**: ${modelInfo.demoInfo.description}`;
                 contextPrompt += `\n- **Mode**: Interactive Demo`;
             }
+            
+            // Analysis enhancement instructions
+            contextPrompt += `\n\n**🚀 Analysis Enhancement Instructions:**`;
+            contextPrompt += `\n- **PRIMARY**: Always reference the user's description to guide your analysis focus`;
+            contextPrompt += `\n- **CATEGORY**: Apply domain-specific knowledge for ${modelInfo.category || 'general'} components`;
+            contextPrompt += `\n- **PURPOSE**: Tailor insights for ${modelInfo.purpose || 'general analysis'} objectives`;
+            contextPrompt += `\n- **TAGS**: Incorporate expertise related to: ${(modelInfo.tags || []).join(', ') || 'general engineering'}`;
+            contextPrompt += `\n- **COMPLEXITY**: Provide ${modelInfo.complexity || 'medium'}-level technical depth`;
         }
 
         // Add scene analysis context
