@@ -1,18 +1,66 @@
-import { useRef, useEffect, forwardRef } from 'react';
+import { useRef, useEffect, forwardRef, useState } from 'react';
 import { useLoader } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import * as THREE from 'three';
 
-export const InteractiveModelPrimitive = forwardRef(({ url, type, onModelLoad, onObjectClick }, ref) => {
+export const InteractiveModelPrimitive = forwardRef(({ url, type, onModelLoad, onObjectClick, targetSize = 100, enableAutoScale = true }, ref) => {
     // Load the model
     const object = useLoader(type === 'fbx' ? FBXLoader : GLTFLoader, url);
     const scene = type === 'fbx' ? object : object.scene;
+    const [modelInfo, setModelInfo] = useState({ originalSize: null, scale: 1, boundingBox: null });
+    
+    // Calculate model scale for normalization
+    const calculateModelScale = (scene) => {
+        const box = new THREE.Box3().setFromObject(scene);
+        const size = box.getSize(new THREE.Vector3());
+        const maxDimension = Math.max(size.x, size.y, size.z);
+        
+        const modelInfo = {
+            originalSize: {
+                width: size.x,
+                height: size.y,
+                depth: size.z,
+                maxDimension: maxDimension
+            },
+            boundingBox: {
+                min: box.min.toArray(),
+                max: box.max.toArray(),
+                center: box.getCenter(new THREE.Vector3()).toArray(),
+                size: size.toArray()
+            },
+            scale: enableAutoScale ? targetSize / maxDimension : 1
+        };
+        
+        console.log('Model Scale Info:', {
+            originalSize: `${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`,
+            maxDimension: maxDimension.toFixed(2),
+            targetSize: targetSize,
+            calculatedScale: modelInfo.scale.toFixed(4),
+            autoScaleEnabled: enableAutoScale
+        });
+        
+        return modelInfo;
+    };
     
     // Simple lighting setup to make model visible
     useEffect(() => {
         if (scene) {
             try {
+                // Calculate scale first
+                const scaleInfo = calculateModelScale(scene);
+                setModelInfo(scaleInfo);
+                
+                // Apply scale if auto-scaling is enabled
+                if (enableAutoScale) {
+                    scene.scale.set(scaleInfo.scale, scaleInfo.scale, scaleInfo.scale);
+                }
+                
+                // Center the model
+                const box = new THREE.Box3().setFromObject(scene);
+                const center = box.getCenter(new THREE.Vector3());
+                scene.position.copy(center).multiplyScalar(-1);
+                
                 scene.traverse((child) => {
                     if (child.isMesh) {
                         // Handle material (could be single material or array of materials)
@@ -104,12 +152,12 @@ export const InteractiveModelPrimitive = forwardRef(({ url, type, onModelLoad, o
     // No dynamic lighting effects needed - using global scene lighting only
     // Model will be visible through the global lighting setup in AnyModelViewer
     
-    // Notify parent when model is loaded
+    // Notify parent when model is loaded with scale information
     useEffect(() => {
         if (scene && onModelLoad) {
-            onModelLoad(scene);
+            onModelLoad(scene, modelInfo);
         }
-    }, [scene, onModelLoad]);
+    }, [scene, onModelLoad, modelInfo]);
 
     // Cleanup function to dispose of materials and geometries
     useEffect(() => {

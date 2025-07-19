@@ -28,6 +28,15 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
     // Auto-screenshot state
     const [autoScreenshotTaken, setAutoScreenshotTaken] = useState(false);
     
+    // Model scale and normalization state
+    const [modelScale, setModelScale] = useState({
+        originalSize: null,
+        normalizedScale: 1,
+        boundingBox: null,
+        targetSize: 100,
+        autoScale: true
+    });
+    
     const { initializeLayers, currentLayer, isAnimating, totalLayers, updateAnimation } = useLayerManager(modelRef, separationDistance);
     
     // Toast state for object clicking
@@ -79,8 +88,20 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
         }
     }, [highlightColor, highlightOpacity]);
 
-    const handleModelLoad = useCallback((scene) => {
+    const handleModelLoad = useCallback((scene, scaleInfo) => {
         console.log('Model loaded, scene:', scene);
+        console.log('Scale info:', scaleInfo);
+        
+        // Store scale information
+        if (scaleInfo) {
+            setModelScale({
+                originalSize: scaleInfo.originalSize,
+                normalizedScale: scaleInfo.scale,
+                boundingBox: scaleInfo.boundingBox,
+                targetSize: 100,
+                autoScale: true
+            });
+        }
         if (modelRef.current) {
             // Initialize layer system after model loads
             setTimeout(() => {
@@ -340,6 +361,8 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                         ref={modelRef}
                         url={url} 
                         type={type} 
+                        targetSize={modelScale.targetSize}
+                        enableAutoScale={modelScale.autoScale}
                         onModelLoad={handleModelLoad}
                         onObjectClick={handleObjectClick}
                     />
@@ -360,6 +383,7 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                 highlightOpacity={highlightOpacity}
                 onHighlightColorChange={setHighlightColor}
                 onHighlightOpacityChange={setHighlightOpacity}
+                modelScale={modelScale}
             />
 
             {isAIOpen && closeAI && (

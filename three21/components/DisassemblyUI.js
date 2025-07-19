@@ -10,7 +10,8 @@ export function DisassemblyUI({
     highlightColor = '#00ffff',
     highlightOpacity = 0.7,
     onHighlightColorChange,
-    onHighlightOpacityChange
+    onHighlightOpacityChange,
+    modelScale = null
 }) {
     const [showInstructions, setShowInstructions] = useState(true);
 
@@ -170,6 +171,23 @@ export function DisassemblyUI({
                         <span className="opacity-value">{(highlightOpacity * 100).toFixed(0)}%</span>
                     </div>
                 </div>
+                
+                {/* Model Scale Information */}
+                {modelScale && modelScale.originalSize && (
+                    <div className="status-row">
+                        <span className="status-label">Scale:</span>
+                        <div className="scale-info">
+                            <div className="scale-details">
+                                <span className="scale-value">
+                                    {modelScale.normalizedScale.toFixed(3)}x
+                                </span>
+                                <div className="original-size" title={`Original: ${modelScale.originalSize.width.toFixed(1)} × ${modelScale.originalSize.height.toFixed(1)} × ${modelScale.originalSize.depth.toFixed(1)}`}>
+                                    📏 {modelScale.originalSize.maxDimension.toFixed(1)} units
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 
                 {totalLayers > 0 && (
                     <div className="progress-container">
@@ -966,6 +984,38 @@ export function DisassemblyUI({
                     padding: 0.2rem 0.4rem;
                     border-radius: 4px;
                     border: 1px solid rgba(var(--primary-rgb), 0.2);
+                }
+
+                .scale-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .scale-details {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.2rem;
+                }
+
+                .scale-value {
+                    font-size: 0.8rem;
+                    font-weight: 700;
+                    color: var(--primary-accent);
+                    text-shadow: 0 0 8px rgba(var(--primary-rgb), 0.6);
+                }
+
+                .original-size {
+                    font-size: 0.65rem;
+                    color: var(--muted);
+                    opacity: 0.8;
+                    cursor: help;
+                    transition: opacity 0.2s;
+                }
+
+                .original-size:hover {
+                    opacity: 1;
+                    color: var(--text-secondary);
                 }
 
                 .distance-slider {
