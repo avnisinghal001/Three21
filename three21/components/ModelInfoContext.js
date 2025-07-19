@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { set as idbSet, get as idbGet } from 'idb-keyval';
 
 const ModelInfoContext = createContext();
@@ -13,10 +13,43 @@ export const useModelInfo = () => {
 };
 
 export function ModelInfoProvider({ children, demoConfig = null }) {
-    const [modelInfo, setModelInfo] = useState(null);
+    // Initialize modelInfo with demoConfig if in demo mode
+    const [modelInfo, setModelInfo] = useState(demoConfig ? {
+        name: demoConfig.name,
+        description: demoConfig.description,
+        category: demoConfig.category,
+        manufacturer: demoConfig.manufacturer,
+        purpose: demoConfig.purpose,
+        complexity: demoConfig.complexity,
+        tags: demoConfig.tags,
+        components: demoConfig.components,
+        isDemoMode: true,
+        uploadTime: new Date().toISOString(),
+        id: 'demo-model'
+    } : null);
     const [isAIOpen, setIsAIOpen] = useState(false);
     const [selectedPart, setSelectedPart] = useState(null);
     const [modelStructure, setModelStructure] = useState(null);
+
+    // Update modelInfo when demoConfig changes
+    useEffect(() => {
+        if (demoConfig && !modelInfo?.isDemoMode) {
+            console.log('Initializing demo mode with config:', demoConfig);
+            setModelInfo({
+                name: demoConfig.name,
+                description: demoConfig.description,
+                category: demoConfig.category,
+                manufacturer: demoConfig.manufacturer,
+                purpose: demoConfig.purpose,
+                complexity: demoConfig.complexity,
+                tags: demoConfig.tags,
+                components: demoConfig.components,
+                isDemoMode: true,
+                uploadTime: new Date().toISOString(),
+                id: 'demo-model'
+            });
+        }
+    }, [demoConfig, modelInfo?.isDemoMode]);
 
     // Extract model structure for AI reference
     const extractModelStructure = useCallback((scene) => {
@@ -29,16 +62,17 @@ export function ModelInfoProvider({ children, demoConfig = null }) {
             purpose: demoConfig?.purpose || '',
             complexity: demoConfig?.complexity || 'medium',
             tags: demoConfig?.tags || [],
-            components: demoConfig?.components || [],
+            components: demoConfig?.components || {},
             technicalSpecs: demoConfig?.technicalSpecs || {},
-            hierarchy: {}
+            hierarchy: {},
+            meshComponents: []
         };
 
         const traverseObject = (object, path = '') => {
             const currentPath = path ? `${path}/${object.name}` : object.name;
             
             if (object.name) {
-                structure.components.push({
+                structure.meshComponents.push({
                     name: object.name,
                     path: currentPath,
                     type: object.type,

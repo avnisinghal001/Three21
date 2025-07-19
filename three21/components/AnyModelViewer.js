@@ -10,6 +10,8 @@ import { useModelInfo } from './ModelInfoContext';
 import { Toast } from './Toast';
 import { HighlightManager } from './HighlightManager';
 import { ScreenshotManager } from './ScreenshotManager';
+import { DEMO_CONFIG } from '@/pages/model';
+
 import html2canvas from 'html2canvas';
 
 export default function AnyModelViewer({ url, type, isDemoMode = false, demoConfig = null }) {

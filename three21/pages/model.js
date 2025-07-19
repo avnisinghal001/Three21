@@ -8,17 +8,16 @@ import ModelErrorBoundary from '../components/ModelErrorBoundary';
 const AnyModelViewer = dynamic(() => import('../components/AnyModelViewer'), { ssr: false });
 
 // Demo model configuration
-const DEMO_CONFIG = {
+export const DEMO_CONFIG = {
     url: '/demo.fbx',
     type: 'fbx',
     name: 'Tactical Quadruped Robot Dog – Inspired by Battlefield 2042 & MIT\'s Mini Cheetah',
-    filename: 'tactical_robot_dog.fbx',
+    filename: 'demo.fbx',
     description: `A high-detail 3D model of a tactical quadruped robot dog, inspired by futuristic combat units from Battlefield 2042, fused with the sleek mechanical design philosophy of MIT's Mini Cheetah. Modeled in Blender and rendered using Cycles, this robotic unit is equipped for battlefield mobility, autonomy, and multi-role deployment. Its design features a sensor-packed head unit, modular armor plating, and actuated leg joints allowing for realistic movement. Built with a central AI core, thermal vision module, and top-mounted payload system, the robot exemplifies the fusion of military-grade engineering with advanced robotics research. This model serves as a concept for next-generation combat robotics—agile, autonomous, and lethal—mirroring current real-world developments in quadruped robotics for tactical applications.`,
-    category: 'Military & Defense',
+    category: 'Military & Defense & Robotics',
     manufacturer: 'Conceptual Design - MIT/Battlefield 2042 Inspired',
-    material: 'Titanium Alloy, Carbon Fiber, Military-Grade Composites',
     purpose: 'Tactical reconnaissance, battlefield support, autonomous operations',
-    complexity: 'high',
+    complexity: 'Complex',
     tags: ['robot dog', 'battlefield 2042 robot', 'quadruped robot', 'blender robot model', 'MIT mini cheetah', 'sci-fi robot', 'tactical robot dog', 'military robot', 'combat robot', 'autonomous machine', 'future warfare', 'cyberpunk robot', 'mechanical dog', 'defense tech'],
     components: {
         'Optic & Sensor Head Unit': 'Cameras, LIDAR, thermal scopes for battlefield awareness',
@@ -31,15 +30,6 @@ const DEMO_CONFIG = {
         'Cooling Vent & Exhaust System': 'Thermal regulation for extended operations',
         'Communication Antenna Array': 'For remote synchronization and swarm operations'
     },
-    technicalSpecs: {
-        'Software': 'Blender 4.x',
-        'Renderer': 'Cycles (Path Tracing)',
-        'Poly Count': 'Mid-to-high poly (optimized topology)',
-        'Rigging': 'Fully rigged legs for walk/run animation',
-        'Texturing': 'PBR with metalness and roughness maps',
-        'Lighting': 'HDRI with 3-point cinematic lighting'
-    },
-    fileSize: 15728640, // ~15MB estimate
     isDemoMode: true
 };
 
@@ -163,12 +153,12 @@ export default function ModelPage() {
 
     return (
         <ModelErrorBoundary>
-            <ModelInfoProvider demoConfig={isDemoMode ? demoConfig : null}>
+            <ModelInfoProvider demoConfig={isDemoMode ? DEMO_CONFIG : null}>
                 <AnyModelViewer 
                     url={fileUrl} 
                     type={type} 
                     isDemoMode={isDemoMode}
-                    demoConfig={demoConfig}
+                    demoConfig={isDemoMode ? DEMO_CONFIG : null}
                 />
             </ModelInfoProvider>
         </ModelErrorBoundary>
