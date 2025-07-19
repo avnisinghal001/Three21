@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
 
-export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI, separationDistance = 0.2, onSeparationDistanceChange }) {
+export function DisassemblyUI({ 
+    currentLayer, 
+    totalLayers, 
+    isAnimating, 
+    onOpenAI, 
+    separationDistance = 0.2, 
+    onSeparationDistanceChange,
+    highlightColor = '#00ffff',
+    highlightOpacity = 0.7,
+    onHighlightColorChange,
+    onHighlightOpacityChange
+}) {
     const [showInstructions, setShowInstructions] = useState(true);
 
     useEffect(() => {
@@ -51,7 +62,7 @@ export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI
                             <span>Reassemble previous layer</span>
                         </div>
                         <div className="instructions-note">
-                            Model will disassemble layer by layer outward from each parent's center. Use the separation slider in the status panel to adjust how far parts move during disassembly.
+                            Model will disassemble layer by layer outward from each parent's center. Use the separation slider in the status panel to adjust how far parts move during disassembly. Click any part to highlight it with customizable neon effects - adjust color and opacity in the highlight controls.
                         </div>
                     </div>
                     
@@ -130,6 +141,33 @@ export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI
                             style={{ width: '80px', marginLeft: '8px' }}
                         />
                         <span className="distance-value">{Number(separationDistance).toFixed(2)}</span>
+                    </div>
+                </div>
+
+                {/* Highlight Color Control */}
+                <div className="status-row">
+                    <span className="status-label">Highlight:</span>
+                    <div className="highlight-control">
+                        <input
+                            type="color"
+                            value={highlightColor}
+                            onChange={(e) => onHighlightColorChange && onHighlightColorChange(e.target.value)}
+                            className="color-picker"
+                            disabled={isAnimating}
+                            title="Highlight Color"
+                        />
+                        <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value={highlightOpacity}
+                            onChange={(e) => onHighlightOpacityChange && onHighlightOpacityChange(parseFloat(e.target.value))}
+                            className="opacity-slider"
+                            disabled={isAnimating}
+                            title="Highlight Opacity"
+                        />
+                        <span className="opacity-value">{(highlightOpacity * 100).toFixed(0)}%</span>
                     </div>
                 </div>
                 
@@ -831,6 +869,105 @@ export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI
                     min-width: 120px;
                 }
 
+                .highlight-control {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    min-width: 140px;
+                }
+
+                .color-picker {
+                    width: 32px;
+                    height: 24px;
+                    border: 1px solid var(--border);
+                    border-radius: 4px;
+                    cursor: pointer;
+                    background: none;
+                    padding: 0;
+                }
+
+                .color-picker::-webkit-color-swatch-wrapper {
+                    padding: 0;
+                    border: none;
+                    border-radius: 4px;
+                }
+
+                .color-picker::-webkit-color-swatch {
+                    border: none;
+                    border-radius: 4px;
+                }
+
+                .color-picker:disabled {
+                    opacity: 0.4;
+                    cursor: not-allowed;
+                }
+
+                .opacity-slider {
+                    flex: 1;
+                    height: 4px;
+                    background: var(--muted);
+                    border-radius: 2px;
+                    outline: none;
+                    opacity: 0.8;
+                    transition: opacity 0.2s;
+                    cursor: pointer;
+                    min-width: 60px;
+                }
+
+                .opacity-slider:hover {
+                    opacity: 1;
+                }
+
+                .opacity-slider::-webkit-slider-thumb {
+                    appearance: none;
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: var(--primary-accent);
+                    cursor: pointer;
+                    border: 2px solid var(--card);
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .opacity-slider::-webkit-slider-thumb:hover {
+                    transform: scale(1.2);
+                    box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4);
+                }
+
+                .opacity-slider::-moz-range-thumb {
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: var(--primary-accent);
+                    cursor: pointer;
+                    border: 2px solid var(--card);
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .opacity-slider:disabled {
+                    opacity: 0.4;
+                    cursor: not-allowed;
+                }
+
+                .opacity-slider:disabled::-webkit-slider-thumb {
+                    cursor: not-allowed;
+                    transform: none;
+                }
+
+                .opacity-value {
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: var(--primary-accent);
+                    min-width: 2.5rem;
+                    text-align: center;
+                    background: rgba(var(--primary-rgb), 0.1);
+                    padding: 0.2rem 0.4rem;
+                    border-radius: 4px;
+                    border: 1px solid rgba(var(--primary-rgb), 0.2);
+                }
+
                 .distance-slider {
                     flex: 1;
                     height: 4px;
@@ -882,6 +1019,31 @@ export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI
                 .distance-slider:disabled::-webkit-slider-thumb {
                     cursor: not-allowed;
                     transform: none;
+                }
+
+                .distance-number-input {
+                    width: 80px;
+                    height: 24px;
+                    padding: 0.2rem 0.4rem;
+                    border: 1px solid var(--border);
+                    border-radius: 4px;
+                    background: var(--card);
+                    color: var(--foreground);
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    text-align: center;
+                    outline: none;
+                    transition: border-color 0.2s;
+                }
+
+                .distance-number-input:focus {
+                    border-color: var(--primary-accent);
+                    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+                }
+
+                .distance-number-input:disabled {
+                    opacity: 0.4;
+                    cursor: not-allowed;
                 }
 
                 .distance-value {

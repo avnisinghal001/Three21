@@ -1,18 +1,23 @@
 import { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import html2canvas from 'html2canvas';
+import AIPromptGenerator from './AIPromptGenerator';
+import { ScreenshotManager } from './ScreenshotManager';
 
 export function Three21Bot({ 
     isOpen, 
     onClose, 
     modelInfo, 
     selectedPart, 
-    onScreenshot 
+    onScreenshot,
+    sceneAnalysis = null,
+    autoScreenshot = null
 }) {
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [screenshot, setScreenshot] = useState(null);
+    const [screenshot, setScreenshot] = useState(autoScreenshot);
+    const [aiPromptGenerator] = useState(() => new AIPromptGenerator());
     const messagesEndRef = useRef(null);
     const chatContainerRef = useRef(null);
 
@@ -21,31 +26,41 @@ export function Three21Bot({
         if (isOpen && messages.length === 0) {
             const greeting = {
                 role: 'assistant',
-                content: `# 🤖 Three21Bot - Your 3D Model Analysis Assistant
+                content: `# 🤖 Three21Bot - Advanced 3D Model Analysis Assistant
 
-Welcome! I'm here to help you understand and reverse engineer your 3D model.
+Welcome! I'm your specialized AI assistant for comprehensive 3D model analysis and reverse engineering.
 
 ${modelInfo ? `## Current Model: **${modelInfo.filename || 'Unnamed Model'}**
-${modelInfo.description ? `*${modelInfo.description}*` : ''}
+${modelInfo.description ? `*User Description: "${modelInfo.description}"*` : ''}
+${modelInfo.category ? `**Category:** ${modelInfo.category}` : ''}
+${modelInfo.manufacturer ? `**Manufacturer:** ${modelInfo.manufacturer}` : ''}
+${modelInfo.material ? `**Material:** ${modelInfo.material}` : ''}
+${modelInfo.purpose ? `**Purpose:** ${modelInfo.purpose}` : ''}
 
-` : ''}**What I can help you with:**
-- 🔍 **Analyze model components** and their functions
-- ⚙️ **Explain assembly mechanisms** and how parts connect
-- 🛠️ **Reverse engineering insights** and methodologies  
-- 📐 **Material and manufacturing** analysis
-- 🎯 **Part-specific information** when you click on components
+` : ''}**🔬 Enhanced Analysis Capabilities:**
+- 📷 **Visual Analysis** - Automated screenshot analysis (excluding UI elements)
+- 🔍 **Component-Level Insights** - Click any part for detailed analysis
+- ⚙️ **Reverse Engineering** - Manufacturing methods & design intent
+- 📐 **Technical Documentation** - Standards, citations & references
+- 🎯 **Research-Grade Output** - Academic quality insights with sources
 
-**Quick Actions:**
-- 📷 Take a screenshot for visual analysis
-- 🗣️ Ask me about specific parts or the overall design
-- 🔧 Get reverse engineering tips
+**📊 Analysis Status:**
+${autoScreenshot ? '✅ Auto-screenshot captured for reference' : '📷 Screenshot available on request'}
+${selectedPart ? `🎯 Selected: ${selectedPart.name || 'Component'}` : '👆 Click any model part for component analysis'}
+${sceneAnalysis ? `🔧 Scene analyzed: ${sceneAnalysis.meshCount} components` : ''}
 
-What would you like to explore first?`,
+**💡 Pro Tips:**
+- I focus ONLY on your 3D model (UI elements are ignored in screenshots)
+- Your model description helps me provide more accurate analysis
+- Ask for citations and references for research purposes
+- I can analyze manufacturing methods, materials, and design decisions
+
+What aspect of your model would you like to explore first?`,
                 timestamp: Date.now()
             };
             setMessages([greeting]);
         }
-    }, [isOpen, modelInfo]);
+    }, [isOpen, modelInfo, autoScreenshot, selectedPart, sceneAnalysis]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -80,9 +95,31 @@ What would you like to explore first?`,
             screenshotData = await captureScreenshot();
         }
 
+        // Generate enhanced prompt based on context
+        let enhancedPrompt = messageText;
+        
+        if (includeScreenshot && sceneAnalysis) {
+            // Generate comprehensive analysis prompt
+            enhancedPrompt = aiPromptGenerator.generateModelAnalysisPrompt(
+                modelInfo,
+                sceneAnalysis,
+                screenshotData,
+                selectedPart
+            );
+        } else if (messageText && modelInfo) {
+            // Generate contextual prompt for user queries
+            enhancedPrompt = aiPromptGenerator.generateContextualPrompt(
+                messageText,
+                modelInfo,
+                selectedPart,
+                messages.length > 1 // Has previous analysis
+            );
+        }
+
         const userMessage = {
             role: 'user',
-            content: messageText || 'Analyze this screenshot of the model',
+            content: enhancedPrompt,
+            originalQuery: messageText, // Store original for display
             timestamp: Date.now(),
             hasScreenshot: !!screenshotData
         };
@@ -92,18 +129,34 @@ What would you like to explore first?`,
         setInputMessage('');
 
         try {
+            // Prepare enhanced request payload
+            const requestPayload = {
+                messages: updatedMessages.map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                })),
+                modelInfo: {
+                    ...modelInfo,
+                    enhancedDescription: modelInfo?.description ? 
+                        `User provided description: "${modelInfo.description}". Use this context to inform your analysis.` : 
+                        null
+                },
+                selectedPart,
+                screenshot: screenshotData,
+                sceneAnalysis,
+                analysisContext: {
+                    excludeUIElements: true,
+                    focusOnModel: true,
+                    researchGrade: true,
+                    provideCitations: true
+                },
+                systemPrompt: aiPromptGenerator.systemPrompt
+            };
+
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    messages: updatedMessages.map(msg => ({
-                        role: msg.role,
-                        content: msg.content
-                    })),
-                    modelInfo,
-                    selectedPart,
-                    screenshot: screenshotData
-                })
+                body: JSON.stringify(requestPayload)
             });
 
             if (!response.ok) {
@@ -119,7 +172,9 @@ What would you like to explore first?`,
             const assistantMessage = {
                 role: 'assistant',
                 content: data.content,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                citations: data.citations || [],
+                references: data.references || []
             };
 
             setMessages(prev => [...prev, assistantMessage]);
@@ -132,7 +187,15 @@ What would you like to explore first?`,
         } catch (error) {
             const errorMessage = {
                 role: 'assistant',
-                content: `❌ **Error**: ${error.message}\n\nPlease try again or rephrase your question.`,
+                content: `❌ **Analysis Error**: ${error.message}
+
+**Troubleshooting:**
+- Ensure your model is fully loaded
+- Try taking a new screenshot
+- Check your internet connection
+- Simplify your question and try again
+
+The AI focuses on technical analysis of your 3D model. Please rephrase your question or try a screenshot-based analysis.`,
                 timestamp: Date.now(),
                 isError: true
             };

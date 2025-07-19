@@ -8,14 +8,25 @@ import { AnimationController } from './AnimationController';
 import { Three21Bot } from './Three21Bot';
 import { useModelInfo } from './ModelInfoContext';
 import { Toast } from './Toast';
+import { HighlightManager } from './HighlightManager';
+import { ScreenshotManager } from './ScreenshotManager';
 import html2canvas from 'html2canvas';
 
 export default function AnyModelViewer({ url, type, isDemoMode = false, demoConfig = null }) {
     const modelRef = useRef();
     const canvasRef = useRef();
+    const highlightManagerRef = useRef(null);
+    const screenshotManagerRef = useRef(null);
     
     // Separation distance state for disassembly
     const [separationDistance, setSeparationDistance] = useState(0.2);
+    
+    // Highlight settings state
+    const [highlightColor, setHighlightColor] = useState('#00ffff');
+    const [highlightOpacity, setHighlightOpacity] = useState(0.7);
+    
+    // Auto-screenshot state
+    const [autoScreenshotTaken, setAutoScreenshotTaken] = useState(false);
     
     const { initializeLayers, currentLayer, isAnimating, totalLayers, updateAnimation } = useLayerManager(modelRef, separationDistance);
     
@@ -44,7 +55,29 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
         if (loadModelInfo && !isDemoMode) {
             loadModelInfo();
         }
+        
+        // Initialize managers
+        if (!highlightManagerRef.current) {
+            highlightManagerRef.current = new HighlightManager();
+        }
+        
+        if (!screenshotManagerRef.current) {
+            screenshotManagerRef.current = new ScreenshotManager(canvasRef);
+        }
     }, [loadModelInfo, isDemoMode]);
+
+    // Update highlight settings
+    useEffect(() => {
+        if (highlightManagerRef.current) {
+            highlightManagerRef.current.setHighlightProperties(
+                highlightColor,
+                highlightOpacity,
+                1.0, // intensity
+                true, // pulse animation
+                2.0 // pulse speed
+            );
+        }
+    }, [highlightColor, highlightOpacity]);
 
     const handleModelLoad = useCallback((scene) => {
         console.log('Model loaded, scene:', scene);
@@ -63,14 +96,53 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                         console.log('Demo mode: Model structure ready for AI');
                     }
                 }
+
+                // Auto-capture screenshot for AI analysis if not already taken
+                if (!autoScreenshotTaken && screenshotManagerRef.current) {
+                    setTimeout(async () => {
+                        try {
+                            const screenshot = await screenshotManagerRef.current.captureModelOnly({
+                                width: 1024,
+                                height: 768,
+                                backgroundColor: '#000000'
+                            });
+                            
+                            if (screenshot) {
+                                console.log('Auto-screenshot captured for AI analysis');
+                                setAutoScreenshotTaken(true);
+                                
+                                // Store screenshot for AI reference
+                                if (setIsAIOpen && modelInfo) {
+                                    // You can optionally auto-open AI with the screenshot
+                                    // setIsAIOpen(true);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Auto-screenshot failed:', error);
+                        }
+                    }, 2000); // Wait 2 seconds for model to fully render
+                }
             }, 100);
         }
-    }, [initializeLayers, isDemoMode, extractModelStructure]);
+    }, [initializeLayers, isDemoMode, extractModelStructure, autoScreenshotTaken, modelInfo, setIsAIOpen]);
 
-    // Handle object click with part selection for both demo and regular modes
+    // Handle object click with part selection and highlighting
     const handleObjectClick = useCallback((objectName, clickedObject) => {
         console.log('Object clicked:', objectName, clickedObject);
         console.log('isDemoMode:', isDemoMode, 'selectPart available:', !!selectPart);
+        
+        // Clear previous highlights
+        if (highlightManagerRef.current) {
+            highlightManagerRef.current.clearAllHighlights();
+        }
+        
+        // Highlight the clicked object
+        if (clickedObject && highlightManagerRef.current) {
+            const highlighted = highlightManagerRef.current.highlightObject(clickedObject);
+            if (highlighted) {
+                console.log('Object highlighted:', objectName);
+            }
+        }
         
         // Try to select part if selectPart function is available
         if (selectPart) {
@@ -107,14 +179,55 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
         }, 2000);
     }, [isDemoMode, selectPart, activeDemoConfig]);
 
+    // Animation loop for highlight updates
+    useEffect(() => {
+        let animationId;
+        
+        const animate = () => {
+            if (highlightManagerRef.current) {
+                highlightManagerRef.current.updateHighlights();
+            }
+            animationId = requestAnimationFrame(animate);
+        };
+        
+        animate();
+        
+        return () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        };
+    }, []);
+
     // Hide toast
     const hideToast = useCallback(() => {
         setToast(prev => ({ ...prev, isVisible: false }));
     }, []);
 
-    // Screenshot functionality
+    // Enhanced screenshot functionality
     const handleScreenshot = useCallback(async () => {
         try {
+            if (!screenshotManagerRef.current) {
+                screenshotManagerRef.current = new ScreenshotManager(canvasRef);
+            }
+
+            // Capture model-only screenshot
+            const screenshot = await screenshotManagerRef.current.captureModelOnly({
+                width: 1024,
+                height: 768,
+                backgroundColor: '#000000',
+                quality: 0.9
+            });
+            
+            if (!screenshot) {
+                throw new Error('Screenshot capture failed');
+            }
+            
+            return screenshot;
+        } catch (error) {
+            console.error('Screenshot failed:', error);
+            
+            // Fallback to original method
             const canvas = canvasRef.current?.querySelector('canvas');
             if (!canvas) {
                 throw new Error('Canvas not found');
@@ -129,9 +242,6 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
             });
             
             return screenshot.toDataURL('image/png');
-        } catch (error) {
-            console.error('Screenshot failed:', error);
-            return null;
         }
     }, []);
 
@@ -246,6 +356,10 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                 onOpenAI={handleOpenAI}
                 separationDistance={separationDistance}
                 onSeparationDistanceChange={setSeparationDistance}
+                highlightColor={highlightColor}
+                highlightOpacity={highlightOpacity}
+                onHighlightColorChange={setHighlightColor}
+                onHighlightOpacityChange={setHighlightOpacity}
             />
 
             {isAIOpen && closeAI && (
@@ -255,6 +369,9 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                     modelInfo={modelInfo}
                     selectedPart={selectedPart}
                     onScreenshot={handleScreenshot}
+                    sceneAnalysis={screenshotManagerRef.current?.analyzeScene ? 
+                        screenshotManagerRef.current.analyzeScene(modelRef.current) : null}
+                    autoScreenshot={screenshotManagerRef.current?.getLastScreenshot()?.dataURL}
                 />
             )}
 
