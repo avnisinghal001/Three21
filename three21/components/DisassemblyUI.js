@@ -110,15 +110,26 @@ export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI
                     <div className="distance-control">
                         <input
                             type="range"
-                            min="0.1"
-                            max="1.0"
-                            step="0.05"
+                            min="0"
+                            max="1000"
+                            step="0.01"
                             value={separationDistance}
                             onChange={(e) => onSeparationDistanceChange && onSeparationDistanceChange(parseFloat(e.target.value))}
                             className="distance-slider"
                             disabled={isAnimating}
                         />
-                        <span className="distance-value">{separationDistance.toFixed(2)}</span>
+                        <input
+                            type="number"
+                            min="0"
+                            max="1000"
+                            step="0.01"
+                            value={separationDistance}
+                            onChange={(e) => onSeparationDistanceChange && onSeparationDistanceChange(parseFloat(e.target.value))}
+                            className="distance-number-input"
+                            disabled={isAnimating}
+                            style={{ width: '80px', marginLeft: '8px' }}
+                        />
+                        <span className="distance-value">{Number(separationDistance).toFixed(2)}</span>
                     </div>
                 </div>
                 
