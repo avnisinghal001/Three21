@@ -382,7 +382,7 @@ export default function EmbeddedDemoViewer({
         currentLayer,
         totalLayers,
         isInitialized
-    } = useOptimizedLayerManager(modelRef, 0.1); // Increased distance for better visibility
+    } = useOptimizedLayerManager(modelRef, 40); // Increased distance for better visibility
 
     // Toast state for object clicking
     const [toast, setToast] = useState({ message: '', isVisible: false });
