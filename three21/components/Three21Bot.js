@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import html2canvas from 'html2canvas';
 import AIPromptGenerator from './AIPromptGenerator';
 import { ScreenshotManager } from './ScreenshotManager';
+import chatStorageManager from './ChatStorageManager';
 
 export function Three21Bot({ 
     isOpen, 
@@ -17,16 +18,65 @@ export function Three21Bot({
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [screenshot, setScreenshot] = useState(autoScreenshot);
+    const [chatLoaded, setChatLoaded] = useState(false);
     const [aiPromptGenerator] = useState(() => new AIPromptGenerator());
     const messagesEndRef = useRef(null);
     const chatContainerRef = useRef(null);
 
-    // Initial greeting when bot opens
+    // Load existing chat when component opens
     useEffect(() => {
-        if (isOpen && messages.length === 0) {
-            const greeting = {
-                role: 'assistant',
-                content: `# 🤖 Three21Bot - Advanced 3D Model Analysis Assistant
+        if (isOpen && !chatLoaded && modelInfo) {
+            loadExistingChat();
+        }
+    }, [isOpen, modelInfo, chatLoaded]);
+
+    // Save chat when messages change
+    useEffect(() => {
+        if (chatLoaded && messages.length > 0 && modelInfo) {
+            saveChatToStorage();
+        }
+    }, [messages, chatLoaded, modelInfo]);
+
+    const loadExistingChat = async () => {
+        try {
+            const existingMessages = await chatStorageManager.loadChatForModel(modelInfo);
+            if (existingMessages.length > 0) {
+                setMessages(existingMessages);
+                console.log(`Loaded ${existingMessages.length} existing messages`);
+            } else {
+                // No existing chat, show initial greeting
+                showInitialGreeting();
+            }
+            setChatLoaded(true);
+        } catch (error) {
+            console.error('Failed to load existing chat:', error);
+            showInitialGreeting();
+            setChatLoaded(true);
+        }
+    };
+
+    const saveChatToStorage = async () => {
+        try {
+            await chatStorageManager.saveChatForModel(modelInfo, messages);
+        } catch (error) {
+            console.error('Failed to save chat:', error);
+        }
+    };
+
+    const clearChatHistory = async () => {
+        try {
+            await chatStorageManager.clearChatForModel(modelInfo);
+            setMessages([]);
+            showInitialGreeting();
+        } catch (error) {
+            console.error('Failed to clear chat:', error);
+        }
+    };
+
+    const showInitialGreeting = () => {
+        const greeting = {
+            role: 'assistant',
+            content: `# 🤖 Three21Bot - Advanced 3D Model Analysis Assistant
 
 Welcome! I'm your specialized AI assistant for comprehensive 3D model analysis and reverse engineering.
 
@@ -56,9 +106,17 @@ ${sceneAnalysis ? `🔧 Scene analyzed: ${sceneAnalysis.meshCount} components` :
 - I can analyze manufacturing methods, materials, and design decisions
 
 What aspect of your model would you like to explore first?`,
-                timestamp: Date.now()
-            };
-            setMessages([greeting]);
+            timestamp: Date.now()
+        };
+        setMessages([greeting]);
+    };
+
+    // Load existing chat when component opens or model changes
+    useEffect(() => {
+        if (isOpen && modelInfo) {
+            loadExistingChat();
+        } else if (isOpen && !modelInfo) {
+            showInitialGreeting();
         }
     }, [isOpen, modelInfo, autoScreenshot, selectedPart, sceneAnalysis]);
 
