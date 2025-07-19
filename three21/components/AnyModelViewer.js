@@ -13,7 +13,11 @@ import html2canvas from 'html2canvas';
 export default function AnyModelViewer({ url, type, isDemoMode = false, demoConfig = null }) {
     const modelRef = useRef();
     const canvasRef = useRef();
-    const { initializeLayers, currentLayer, isAnimating, totalLayers, updateAnimation } = useLayerManager(modelRef);
+    
+    // Separation distance state for disassembly
+    const [separationDistance, setSeparationDistance] = useState(0.2);
+    
+    const { initializeLayers, currentLayer, isAnimating, totalLayers, updateAnimation } = useLayerManager(modelRef, separationDistance);
     
     // Toast state for object clicking
     const [toast, setToast] = useState({ message: '', isVisible: false });
@@ -240,6 +244,8 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                 totalLayers={totalLayers}
                 isAnimating={isAnimating}
                 onOpenAI={handleOpenAI}
+                separationDistance={separationDistance}
+                onSeparationDistanceChange={setSeparationDistance}
             />
 
             {isAIOpen && closeAI && (

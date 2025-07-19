@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import * as THREE from 'three';
 
-export function useLayerManager(modelRef) {
+export function useLayerManager(modelRef, separationDistance = 0.2) {
     const [currentLayer, setCurrentLayer] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
     
@@ -17,7 +17,7 @@ export function useLayerManager(modelRef) {
         type: 'none' // 'disassemble', 'reassemble'
     });
 
-    const disassembleDistance = 0.2;
+    const disassembleDistance = separationDistance;
 
     // Initialize layers using BFS - improved to catch all objects
     const initializeLayers = useCallback((object) => {

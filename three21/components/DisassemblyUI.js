@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI }) {
+export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI, separationDistance = 0.2, onSeparationDistanceChange }) {
     const [showInstructions, setShowInstructions] = useState(true);
 
     useEffect(() => {
@@ -51,7 +51,7 @@ export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI
                             <span>Reassemble previous layer</span>
                         </div>
                         <div className="instructions-note">
-                            Model will disassemble layer by layer outward from each parent's center
+                            Model will disassemble layer by layer outward from each parent's center. Use the separation slider in the status panel to adjust how far parts move during disassembly.
                         </div>
                     </div>
                     
@@ -102,6 +102,24 @@ export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI
                 <div className="status-row">
                     <span className="status-label">Layer:</span>
                     <span className="status-value">{currentLayer} / {totalLayers}</span>
+                </div>
+                
+                {/* Separation Distance Control */}
+                <div className="status-row">
+                    <span className="status-label">Separation:</span>
+                    <div className="distance-control">
+                        <input
+                            type="range"
+                            min="0.1"
+                            max="1.0"
+                            step="0.05"
+                            value={separationDistance}
+                            onChange={(e) => onSeparationDistanceChange && onSeparationDistanceChange(parseFloat(e.target.value))}
+                            className="distance-slider"
+                            disabled={isAnimating}
+                        />
+                        <span className="distance-value">{separationDistance.toFixed(2)}</span>
+                    </div>
                 </div>
                 
                 {totalLayers > 0 && (
@@ -480,22 +498,6 @@ export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI
                     z-index: 1;
                 }
 
-                .control-item:hover::before {
-                    left: 0;
-                }
-
-                .control-item:hover::after {
-                    width: 100%;
-                }
-
-                .control-item:hover {
-                    transform: translateX(6px) scale(1.02);
-                    border-color: rgba(var(--primary-rgb), 0.2);
-                    box-shadow: 
-                        0 8px 24px rgba(var(--primary-rgb), 0.15),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-                }
-
                 .key-badge {
                     display: inline-flex;
                     align-items: center;
@@ -809,6 +811,78 @@ export function DisassemblyUI({ currentLayer, totalLayers, isAnimating, onOpenAI
                     display: flex;
                     align-items: center;
                     gap: 0.5rem;
+                }
+
+                .distance-control {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    min-width: 120px;
+                }
+
+                .distance-slider {
+                    flex: 1;
+                    height: 4px;
+                    background: var(--muted);
+                    border-radius: 2px;
+                    outline: none;
+                    opacity: 0.8;
+                    transition: opacity 0.2s;
+                    cursor: pointer;
+                }
+
+                .distance-slider:hover {
+                    opacity: 1;
+                }
+
+                .distance-slider::-webkit-slider-thumb {
+                    appearance: none;
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: var(--primary-accent);
+                    cursor: pointer;
+                    border: 2px solid var(--card);
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .distance-slider::-webkit-slider-thumb:hover {
+                    transform: scale(1.2);
+                    box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4);
+                }
+
+                .distance-slider::-moz-range-thumb {
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 50%;
+                    background: var(--primary-accent);
+                    cursor: pointer;
+                    border: 2px solid var(--card);
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+
+                .distance-slider:disabled {
+                    opacity: 0.4;
+                    cursor: not-allowed;
+                }
+
+                .distance-slider:disabled::-webkit-slider-thumb {
+                    cursor: not-allowed;
+                    transform: none;
+                }
+
+                .distance-value {
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: var(--primary-accent);
+                    min-width: 2.5rem;
+                    text-align: center;
+                    background: rgba(var(--primary-rgb), 0.1);
+                    padding: 0.2rem 0.4rem;
+                    border-radius: 4px;
+                    border: 1px solid rgba(var(--primary-rgb), 0.2);
                 }
 
                 .status-dot {
