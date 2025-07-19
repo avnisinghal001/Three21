@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import html2canvas from 'html2canvas';
 import AIPromptGenerator from './AIPromptGenerator';
 import { ScreenshotManager } from './ScreenshotManager';
 import chatStorageManager from './ChatStorageManager';
-
-export function Three21Bot({ 
+export default function Three21Bot({ 
     isOpen, 
     onClose, 
     modelInfo, 
+    demoConfig = null,
     selectedPart, 
     onScreenshot,
     sceneAnalysis = null,
@@ -25,21 +25,23 @@ export function Three21Bot({
 
     // Load existing chat when component opens
     useEffect(() => {
-        if (isOpen && !chatLoaded && modelInfo) {
+        if (isOpen && !chatLoaded && (modelInfo || demoConfig)) {
             loadExistingChat();
         }
-    }, [isOpen, modelInfo, chatLoaded]);
+    }, [isOpen, modelInfo, demoConfig, chatLoaded]);
 
     // Save chat when messages change
     useEffect(() => {
-        if (chatLoaded && messages.length > 0 && modelInfo) {
+        if (chatLoaded && messages.length > 0 && (modelInfo || demoConfig)) {
             saveChatToStorage();
         }
-    }, [messages, chatLoaded, modelInfo]);
+    }, [messages, chatLoaded, modelInfo, demoConfig]);
 
     const loadExistingChat = async () => {
         try {
-            const existingMessages = await chatStorageManager.loadChatForModel(modelInfo);
+            // Use demo config or regular model info for chat loading
+            const chatModelInfo = demoConfig || modelInfo;
+            const existingMessages = await chatStorageManager.loadChatForModel(chatModelInfo);
             if (existingMessages.length > 0) {
                 setMessages(existingMessages);
                 console.log(`Loaded ${existingMessages.length} existing messages`);
@@ -57,7 +59,9 @@ export function Three21Bot({
 
     const saveChatToStorage = async () => {
         try {
-            await chatStorageManager.saveChatForModel(modelInfo, messages);
+            // Use demo config or regular model info for chat saving
+            const chatModelInfo = demoConfig || modelInfo;
+            await chatStorageManager.saveChatForModel(chatModelInfo, messages);
         } catch (error) {
             console.error('Failed to save chat:', error);
         }
@@ -65,7 +69,9 @@ export function Three21Bot({
 
     const clearChatHistory = async () => {
         try {
-            await chatStorageManager.clearChatForModel(modelInfo);
+            // Use demo config or regular model info for chat clearing
+            const chatModelInfo = demoConfig || modelInfo;
+            await chatStorageManager.clearChatForModel(chatModelInfo);
             setMessages([]);
             showInitialGreeting();
         } catch (error) {
@@ -74,18 +80,25 @@ export function Three21Bot({
     };
 
     const showInitialGreeting = () => {
+        // Get model info from demo config or regular model info
+        const currentModelInfo = demoConfig || modelInfo;
+        
         const greeting = {
             role: 'assistant',
             content: `# 🤖 Three21Bot - Advanced 3D Model Analysis Assistant
 
 Welcome! I'm your specialized AI assistant for comprehensive 3D model analysis and reverse engineering.
 
-${modelInfo ? `## Current Model: **${modelInfo.filename || 'Unnamed Model'}**
-${modelInfo.description ? `*User Description: "${modelInfo.description}"*` : ''}
-${modelInfo.category ? `**Category:** ${modelInfo.category}` : ''}
-${modelInfo.manufacturer ? `**Manufacturer:** ${modelInfo.manufacturer}` : ''}
-${modelInfo.material ? `**Material:** ${modelInfo.material}` : ''}
-${modelInfo.purpose ? `**Purpose:** ${modelInfo.purpose}` : ''}
+${currentModelInfo ? `## Current Model: **${currentModelInfo.name || currentModelInfo.filename || 'Unnamed Model'}**
+${currentModelInfo.description ? `*${currentModelInfo.description.substring(0, 200)}${currentModelInfo.description.length > 200 ? '...' : ''}*` : ''}
+
+**📋 Model Details:**
+${currentModelInfo.category ? `- **Category:** ${currentModelInfo.category}` : ''}
+${currentModelInfo.manufacturer ? `- **Manufacturer:** ${currentModelInfo.manufacturer}` : ''}
+${currentModelInfo.material ? `- **Material:** ${currentModelInfo.material}` : ''}
+${currentModelInfo.purpose ? `- **Purpose:** ${currentModelInfo.purpose}` : ''}
+${currentModelInfo.complexity ? `- **Complexity:** ${currentModelInfo.complexity}` : ''}
+${currentModelInfo.tags && currentModelInfo.tags.length > 0 ? `- **Tags:** ${currentModelInfo.tags.slice(0, 5).join(', ')}${currentModelInfo.tags.length > 5 ? '...' : ''}` : ''}
 
 ` : ''}**🔬 Enhanced Analysis Capabilities:**
 - 📷 **Visual Analysis** - Automated screenshot analysis (excluding UI elements)
@@ -93,6 +106,7 @@ ${modelInfo.purpose ? `**Purpose:** ${modelInfo.purpose}` : ''}
 - ⚙️ **Reverse Engineering** - Manufacturing methods & design intent
 - 📐 **Technical Documentation** - Standards, citations & references
 - 🎯 **Research-Grade Output** - Academic quality insights with sources
+- 🔗 **Study Resources** - Links to relevant research and documentation
 
 **📊 Analysis Status:**
 ${autoScreenshot ? '✅ Auto-screenshot captured for reference' : '📷 Screenshot available on request'}
@@ -102,23 +116,25 @@ ${sceneAnalysis ? `🔧 Scene analyzed: ${sceneAnalysis.meshCount} components` :
 **💡 Pro Tips:**
 - I focus ONLY on your 3D model (UI elements are ignored in screenshots)
 - Your model description helps me provide more accurate analysis
-- Ask for citations and references for research purposes
+- Ask for study links and references for research purposes
 - I can analyze manufacturing methods, materials, and design decisions
+- All chats are saved locally for this specific model
 
 What aspect of your model would you like to explore first?`,
             timestamp: Date.now()
         };
+        
         setMessages([greeting]);
     };
 
     // Load existing chat when component opens or model changes
     useEffect(() => {
-        if (isOpen && modelInfo) {
+        if (isOpen && (modelInfo || demoConfig)) {
             loadExistingChat();
-        } else if (isOpen && !modelInfo) {
+        } else if (isOpen && !modelInfo && !demoConfig) {
             showInitialGreeting();
         }
-    }, [isOpen, modelInfo, autoScreenshot, selectedPart, sceneAnalysis]);
+    }, [isOpen, modelInfo, demoConfig, autoScreenshot, selectedPart, sceneAnalysis]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -175,7 +191,7 @@ What aspect of your model would you like to explore first?`,
                         role: msg.role,
                         content: msg.content
                     })),
-                    modelInfo,
+                    modelInfo: demoConfig || modelInfo,  // Use demo config when available
                     selectedPart,
                     screenshot: screenshotData,
                     sceneAnalysis,

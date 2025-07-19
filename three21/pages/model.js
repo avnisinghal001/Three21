@@ -11,8 +11,36 @@ const AnyModelViewer = dynamic(() => import('../components/AnyModelViewer'), { s
 const DEMO_CONFIG = {
     url: '/demo.fbx',
     type: 'fbx',
-    description: `This 330x380 mm modular firebox assembly is a precision-engineered, high-temperature enclosure designed for thermal experimentation and monitoring applications. The robust outer housing is built to withstand intense heat, while the inner chamber is insulated with refractory materials to ensure thermal containment and efficiency. Key components include integrated temperature or pressure meters (yellow-black cubes), high-intensity heating or indicator lamps (gray cylinders), and a rotary head assembly for adjustable operation or sensor interfacing. A translucent high-temperature glass window allows safe visual inspection of internal processes. The modular design, visible in the exploded view, supports ease of maintenance, part replacement, and component upgrades—making this unit ideal for research labs, industrial testing environments, and controlled combustion setups requiring both performance and flexibility.`,
-    name: '330x380mm Modular Firebox Assembly'
+    name: 'Tactical Quadruped Robot Dog – Inspired by Battlefield 2042 & MIT\'s Mini Cheetah',
+    filename: 'tactical_robot_dog.fbx',
+    description: `A high-detail 3D model of a tactical quadruped robot dog, inspired by futuristic combat units from Battlefield 2042, fused with the sleek mechanical design philosophy of MIT's Mini Cheetah. Modeled in Blender and rendered using Cycles, this robotic unit is equipped for battlefield mobility, autonomy, and multi-role deployment. Its design features a sensor-packed head unit, modular armor plating, and actuated leg joints allowing for realistic movement. Built with a central AI core, thermal vision module, and top-mounted payload system, the robot exemplifies the fusion of military-grade engineering with advanced robotics research. This model serves as a concept for next-generation combat robotics—agile, autonomous, and lethal—mirroring current real-world developments in quadruped robotics for tactical applications.`,
+    category: 'Military & Defense',
+    manufacturer: 'Conceptual Design - MIT/Battlefield 2042 Inspired',
+    material: 'Titanium Alloy, Carbon Fiber, Military-Grade Composites',
+    purpose: 'Tactical reconnaissance, battlefield support, autonomous operations',
+    complexity: 'high',
+    tags: ['robot dog', 'battlefield 2042 robot', 'quadruped robot', 'blender robot model', 'MIT mini cheetah', 'sci-fi robot', 'tactical robot dog', 'military robot', 'combat robot', 'autonomous machine', 'future warfare', 'cyberpunk robot', 'mechanical dog', 'defense tech'],
+    components: {
+        'Optic & Sensor Head Unit': 'Cameras, LIDAR, thermal scopes for battlefield awareness',
+        'Central Processing Core': 'AI decision-making unit with tactical algorithms',
+        'Upper and Lower Leg Pistons': 'Hydraulic servo-linked limbs for agile movement',
+        'Knee & Ankle Joints': 'Fully rigged articulation for complex terrain navigation',
+        'Paw Grippers': 'Magnetic and terrain-sensing footpads for enhanced stability',
+        'Armor Plating': 'Detachable modular covers for battlefield endurance',
+        'Payload Deck': 'Compatible with drones, turrets, or supply modules',
+        'Cooling Vent & Exhaust System': 'Thermal regulation for extended operations',
+        'Communication Antenna Array': 'For remote synchronization and swarm operations'
+    },
+    technicalSpecs: {
+        'Software': 'Blender 4.x',
+        'Renderer': 'Cycles (Path Tracing)',
+        'Poly Count': 'Mid-to-high poly (optimized topology)',
+        'Rigging': 'Fully rigged legs for walk/run animation',
+        'Texturing': 'PBR with metalness and roughness maps',
+        'Lighting': 'HDRI with 3-point cinematic lighting'
+    },
+    fileSize: 15728640, // ~15MB estimate
+    isDemoMode: true
 };
 
 export default function ModelPage() {

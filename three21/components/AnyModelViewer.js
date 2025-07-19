@@ -19,7 +19,7 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
     const screenshotManagerRef = useRef(null);
     
     // Separation distance state for disassembly
-    const [separationDistance, setSeparationDistance] = useState(0.2);
+    const [separationDistance, setSeparationDistance] = useState(40);  // Better demo value
     
     // Highlight settings state
     const [highlightColor, setHighlightColor] = useState('#00ffff');
@@ -367,6 +367,7 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                     isOpen={isAIOpen}
                     onClose={closeAI}
                     modelInfo={modelInfo}
+                    demoConfig={activeDemoConfig}
                     selectedPart={selectedPart}
                     onScreenshot={handleScreenshot}
                     sceneAnalysis={screenshotManagerRef.current?.analyzeScene ? 

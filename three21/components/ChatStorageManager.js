@@ -1,5 +1,4 @@
 import { openDB } from 'idb';
-
 /**
  * Chat Storage Manager for persistent model-specific conversations
  * Uses IndexedDB to store chats locally per model

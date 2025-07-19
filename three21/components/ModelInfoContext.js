@@ -23,7 +23,14 @@ export function ModelInfoProvider({ children, demoConfig = null }) {
         const structure = {
             name: demoConfig?.name || 'Model',
             description: demoConfig?.description || '',
-            components: [],
+            category: demoConfig?.category || '',
+            manufacturer: demoConfig?.manufacturer || '',
+            material: demoConfig?.material || '',
+            purpose: demoConfig?.purpose || '',
+            complexity: demoConfig?.complexity || 'medium',
+            tags: demoConfig?.tags || [],
+            components: demoConfig?.components || [],
+            technicalSpecs: demoConfig?.technicalSpecs || {},
             hierarchy: {}
         };
 
