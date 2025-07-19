@@ -179,7 +179,7 @@ export async function POST(req) {
         ];
 
         const result = await generateText({
-            model: google('gemini-1.5-pro'),
+            model: google('gemini-2.5-flash'),
             messages: conversationMessages,
             maxTokens: 2000,
             temperature: 0.1, // Lower temperature for more technical, consistent responses

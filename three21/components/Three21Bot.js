@@ -95,31 +95,10 @@ What aspect of your model would you like to explore first?`,
             screenshotData = await captureScreenshot();
         }
 
-        // Generate enhanced prompt based on context
-        let enhancedPrompt = messageText;
-        
-        if (includeScreenshot && sceneAnalysis) {
-            // Generate comprehensive analysis prompt
-            enhancedPrompt = aiPromptGenerator.generateModelAnalysisPrompt(
-                modelInfo,
-                sceneAnalysis,
-                screenshotData,
-                selectedPart
-            );
-        } else if (messageText && modelInfo) {
-            // Generate contextual prompt for user queries
-            enhancedPrompt = aiPromptGenerator.generateContextualPrompt(
-                messageText,
-                modelInfo,
-                selectedPart,
-                messages.length > 1 // Has previous analysis
-            );
-        }
-
+        // Keep user message simple and clean
         const userMessage = {
             role: 'user',
-            content: enhancedPrompt,
-            originalQuery: messageText, // Store original for display
+            content: messageText || (includeScreenshot ? 'Please analyze this screenshot of the model' : ''),
             timestamp: Date.now(),
             hasScreenshot: !!screenshotData
         };
@@ -129,34 +108,26 @@ What aspect of your model would you like to explore first?`,
         setInputMessage('');
 
         try {
-            // Prepare enhanced request payload
-            const requestPayload = {
-                messages: updatedMessages.map(msg => ({
-                    role: msg.role,
-                    content: msg.content
-                })),
-                modelInfo: {
-                    ...modelInfo,
-                    enhancedDescription: modelInfo?.description ? 
-                        `User provided description: "${modelInfo.description}". Use this context to inform your analysis.` : 
-                        null
-                },
-                selectedPart,
-                screenshot: screenshotData,
-                sceneAnalysis,
-                analysisContext: {
-                    excludeUIElements: true,
-                    focusOnModel: true,
-                    researchGrade: true,
-                    provideCitations: true
-                },
-                systemPrompt: aiPromptGenerator.systemPrompt
-            };
-
+            // Send clean request - let the API handle the system prompt enhancement
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestPayload)
+                body: JSON.stringify({
+                    messages: updatedMessages.map(msg => ({
+                        role: msg.role,
+                        content: msg.content
+                    })),
+                    modelInfo,
+                    selectedPart,
+                    screenshot: screenshotData,
+                    sceneAnalysis,
+                    analysisContext: {
+                        excludeUIElements: true,
+                        focusOnModel: true,
+                        researchGrade: true,
+                        provideCitations: true
+                    }
+                })
             });
 
             if (!response.ok) {
