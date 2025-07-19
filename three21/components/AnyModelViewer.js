@@ -5,7 +5,7 @@ import { InteractiveModelPrimitive } from './InteractiveModelPrimitive';
 import { DisassemblyUI } from './DisassemblyUI';
 import { useLayerManager } from './LayerManager';
 import { AnimationController } from './AnimationController';
-import { Three21Bot } from './Three21Bot';
+import Three21Bot from './Three21Bot';
 import { useModelInfo } from './ModelInfoContext';
 import { Toast } from './Toast';
 import { HighlightManager } from './HighlightManager';
