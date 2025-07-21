@@ -21,7 +21,7 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
     const screenshotManagerRef = useRef(null);
     
     // Separation distance state for disassembly
-    const [separationDistance, setSeparationDistance] = useState(40);  // Better demo value
+    const [separationDistance, setSeparationDistance] = useState(80);  // Better demo value
     
     // Highlight settings state
     const [highlightColor, setHighlightColor] = useState('#00ffff');
@@ -341,21 +341,21 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                     position={[10, 0, 0]} 
                     intensity={1.2} 
                     color="#ffffff"
-                    distance={40}
+                    distance={100}
                     decay={1}
                 />
                 <pointLight 
                     position={[-10, 0, 0]} 
                     intensity={1.2} 
                     color="#ffffff"
-                    distance={40}
+                    distance={100}
                     decay={1}
                 />
                 <pointLight 
                     position={[0, -5, 0]} 
                     intensity={1.0} 
                     color="#ffffff"
-                    distance={40}
+                    distance={80}
                     decay={1}
                 />
                 <Suspense fallback={null}>

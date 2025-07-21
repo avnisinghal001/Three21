@@ -455,7 +455,7 @@ export default function EmbeddedDemoViewer({
                         position={[0, 5, 10]}
                         intensity={0.8}
                         color="#ffffff"
-                        distance={40}
+                        distance={100}
                     />
 
                     <Suspense fallback={null}>
@@ -474,7 +474,7 @@ export default function EmbeddedDemoViewer({
                         dampingFactor={0.1}
                         enableZoom={true}
                         enablePan={true}
-                        maxDistance={140}
+                        maxDistance={200}
                         minDistance={30}
                     />
                     <Environment preset="studio" background={false} />
