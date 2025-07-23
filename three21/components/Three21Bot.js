@@ -402,8 +402,8 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     width: 100%;
                     max-width: 56rem;
                     height: 85vh;
-                    background: #ffffff;
-                    border: 1px solid #e5e7eb;
+                    background: #1f2937;
+                    border: 1px solid #374151;
                     border-radius: 20px;
                     display: flex;
                     flex-direction: column;
@@ -434,8 +434,8 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .three21-bot-header {
-                    background: #f8fafc;
-                    border-bottom: 1px solid #e5e7eb;
+                    background: #111827;
+                    border-bottom: 1px solid #374151;
                     padding: 1rem 1.5rem;
                     display: flex;
                     align-items: center;
@@ -474,14 +474,14 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .bot-info h3 {
-                    color: #111827;
+                    color: #f9fafb;
                     margin: 0;
                     font-size: 1.125rem;
                     font-weight: 700;
                 }
 
                 .bot-status {
-                    color: #6b7280;
+                    color: #9ca3af;
                     font-size: 0.8rem;
                     display: block;
                     margin-top: 0.25rem;
@@ -525,7 +525,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     display: flex;
                     flex-direction: column;
                     gap: 1rem;
-                    background: #ffffff;
+                    background: #1f2937;
                 }
 
                 .message {
@@ -558,9 +558,9 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .message.assistant .message-content {
-                    background: #f8fafc;
-                    color: #111827;
-                    border: 1px solid #e5e7eb;
+                    background: #111827;
+                    color: #f9fafb;
+                    border: 1px solid #374151;
                     border-bottom-left-radius: 6px;
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 }
@@ -616,8 +616,8 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .three21-bot-input {
-                    background: #f8fafc;
-                    border-top: 1px solid #e5e7eb;
+                    background: #111827;
+                    border-top: 1px solid #374151;
                     padding: 1rem 1.5rem;
                 }
 
@@ -630,9 +630,9 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .quick-action-btn {
-                    background: #ffffff;
-                    border: 1px solid #d1d5db;
-                    color: #374151;
+                    background: #1f2937;
+                    border: 1px solid #374151;
+                    color: #f9fafb;
                     padding: 0.5rem 0.875rem;
                     border-radius: 10px;
                     font-size: 0.75rem;
@@ -643,7 +643,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .quick-action-btn:hover:not(:disabled) {
-                    background: #f3f4f6;
+                    background: #374151;
                     border-color: #9ca3af;
                     transform: translateY(-1px);
                     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -672,11 +672,11 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
 
                 .message-input {
                     flex: 1;
-                    background: #ffffff;
-                    border: 1px solid #d1d5db;
+                    background: #1f2937;
+                    border: 1px solid #374151;
                     border-radius: 14px;
                     padding: 0.875rem 1rem;
-                    color: #111827;
+                    color: #f9fafb;
                     font-size: 0.8rem;
                     outline: none;
                     transition: all 0.2s ease;
@@ -692,7 +692,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .message-input::placeholder {
-                    color: #9ca3af;
+                    color: #6b7280;
                 }
 
                 .send-button {
@@ -723,9 +723,9 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     transform: none;
                 }
 
-                /* Enhanced Markdown Styles - More Compact */
+                /* Enhanced Markdown Styles - Dark Theme */
                 .markdown-h1 {
-                    color: #111827;
+                    color: #f9fafb;
                     font-size: 1.25rem;
                     margin: 0 0 0.75rem 0;
                     font-weight: 700;
@@ -733,7 +733,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .markdown-h2 {
-                    color: #111827;
+                    color: #f9fafb;
                     font-size: 1.125rem;
                     margin: 1rem 0 0.5rem 0;
                     font-weight: 600;
@@ -741,7 +741,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .markdown-h3 {
-                    color: #374151;
+                    color: #d1d5db;
                     font-size: 0.9rem;
                     margin: 0.75rem 0 0.375rem 0;
                     font-weight: 600;
@@ -751,7 +751,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 .markdown-p {
                     margin: 0.5rem 0;
                     line-height: 1.6;
-                    color: #111827;
+                    color: #f9fafb;
                 }
 
                 .markdown-ul {
@@ -762,7 +762,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 .markdown-li {
                     margin: 0.375rem 0;
                     line-height: 1.5;
-                    color: #111827;
+                    color: #f9fafb;
                 }
 
                 .markdown-strong {
@@ -771,13 +771,13 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                 }
 
                 .markdown-code {
-                    background: #f3f4f6;
-                    color: #374151;
+                    background: #374151;
+                    color: #d1d5db;
                     padding: 0.2rem 0.4rem;
                     border-radius: 5px;
                     font-family: 'Courier New', monospace;
                     font-size: 0.75rem;
-                    border: 1px solid #e5e7eb;
+                    border: 1px solid #4b5563;
                 }
 
                 /* Custom Scrollbar */
@@ -1072,75 +1072,6 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     }
                 }
 
-                /* Dark theme support */
-                @media (prefers-color-scheme: dark) {
-                    .three21-bot-container {
-                        background: #1f2937;
-                        border-color: #374151;
-                    }
-                    
-                    .three21-bot-header {
-                        background: #111827;
-                        border-bottom-color: #374151;
-                    }
-                    
-                    .three21-bot-messages {
-                        background: #1f2937;
-                    }
-                    
-                    .three21-bot-input {
-                        background: #111827;
-                        border-top-color: #374151;
-                    }
-                    
-                    .bot-info h3 {
-                        color: #f9fafb;
-                    }
-                    
-                    .bot-status {
-                        color: #9ca3af;
-                    }
-                    
-                    .message.assistant .message-content {
-                        background: #111827;
-                        color: #f9fafb;
-                        border-color: #374151;
-                    }
-                    
-                    .message-input {
-                        background: #1f2937;
-                        border-color: #374151;
-                        color: #f9fafb;
-                    }
-                    
-                    .message-input::placeholder {
-                        color: #6b7280;
-                    }
-                    
-                    .quick-action-btn {
-                        background: #1f2937;
-                        border-color: #374151;
-                        color: #f9fafb;
-                    }
-                    
-                    .quick-action-btn:hover:not(:disabled) {
-                        background: #374151;
-                    }
-                    
-                    .markdown-h1, .markdown-h2, .markdown-p, .markdown-li {
-                        color: #f9fafb;
-                    }
-                    
-                    .markdown-h3 {
-                        color: #d1d5db;
-                    }
-                    
-                    .markdown-code {
-                        background: #374151;
-                        color: #d1d5db;
-                        border-color: #4b5563;
-                    }
-                }
             `}</style>
         </div>
     );

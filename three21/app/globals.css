@@ -1,103 +1,59 @@
-/* Light Mode Theme List - Enhanced shadcn inspired */
+/* Dark Theme Only - Three21 Enhanced Design */
 :root {
-  --background: #ffffff;
-  --foreground: #09090b;
-  --card: #ffffff;
-  --card-foreground: #09090b;
-  --popover: #ffffff;
-  --popover-foreground: #09090b;
-  --primary: #18181b;
-  --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f8fafc;
+  --background: #0f0f13;
+  --foreground: #fafafa;
+  --card: #0a0a0b93;
+  --card-foreground: #fafafa;
+  --popover: #09090b;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #09090b;
+  --secondary: #18181b;
+  --secondary-foreground: #fafafa;
+  --muted: #18181b;
   --muted-foreground: #bed9fe;
-  --accent: #f1f5f9;
-  --accent-foreground: #18181b;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
   --destructive: #ef4444;
   --destructive-foreground: #fafafa;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #18181b;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #fafafa;
   --radius: 0.5rem;
 
-  /* Enhanced colors for Three21 */
+  /* Enhanced colors for Three21 - Dark Theme */
   --primary-accent: #3b82f6;
-  --primary-hover: #2563eb;
-  --primary-shadow: rgba(59, 130, 246, 0.3);
+  --primary-hover: #60a5fa;
+  --primary-shadow: rgba(59, 130, 246, 0.4);
   --secondary-accent: #8b5cf6;
-  --secondary-hover: #7c3aed;
-  --secondary-shadow: rgba(139, 92, 246, 0.3);
+  --secondary-hover: #a78bfa;
+  --secondary-shadow: rgba(139, 92, 246, 0.4);
   --success: #10b981;
-  --success-hover: #059669;
-  --warning: #f59e0b;
+  --success-hover: #34d399;
+  --success-shadow: rgba(16, 185, 129, 0.4);
   --info: #06b6d4;
+  --info-shadow: rgba(6, 182, 212, 0.4);
+  --warning: #f59e0b;
+  --error: #ef4444;
   --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-info: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   --backdrop-blur: blur(12px);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.05);
 
-  /* RGB values for advanced effects */
+  /* RGB values for advanced effects - Dark Theme */
   --primary-rgb: 59, 130, 246;
   --secondary-rgb: 139, 92, 246;
   --accent-rgb: 59, 130, 246;
   --success-rgb: 16, 185, 129;
   --warning-rgb: 245, 158, 11;
   --error-rgb: 239, 68, 68;
+  --info-rgb: 6, 182, 212;
 }
 
-/* Dark Mode Theme List */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f0f13;
-    --foreground: #fafafa;
-    --card: #0a0a0b93;
-    --card-foreground: #fafafa;
-    --popover: #09090b;
-    --popover-foreground: #fafafa;
-    --primary: #fafafa;
-    --primary-foreground: #09090b;
-    --secondary: #18181b;
-    --secondary-foreground: #fafafa;
-    --muted: #18181b;
-  --muted-foreground: #bed9fe;
-    --accent: #27272a;
-    --accent-foreground: #fafafa;
-    --destructive: #ef4444;
-    --destructive-foreground: #fafafa;
-    --border: #27272a;
-    --input: #27272a;
-    --ring: #fafafa;
-
-    /* Enhanced colors for Three21 - Dark Mode */
-    --primary-accent: #3b82f6;
-    --primary-hover: #60a5fa;
-    --primary-shadow: rgba(59, 130, 246, 0.4);
-    --secondary-accent: #8b5cf6;
-    --secondary-hover: #a78bfa;
-    --secondary-shadow: rgba(139, 92, 246, 0.4);
-    --success: #10b981;
-    --success-hover: #34d399;
-    --warning: #f59e0b;
-    --info: #06b6d4;
-    --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    --gradient-secondary: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-    --backdrop-blur: blur(12px);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-bg: rgba(255, 255, 255, 0.05);
-
-    /* RGB values for advanced effects - Dark Mode */
-    --primary-rgb: 59, 130, 246;
-    --secondary-rgb: 139, 92, 246;
-    --accent-rgb: 59, 130, 246;
-    --success-rgb: 16, 185, 129;
-    --warning-rgb: 245, 158, 11;
-    --error-rgb: 239, 68, 68;
-  }
-}
-
-/* Force dark mode for model viewer */
+/* Force dark theme for model viewer */
 .dark-theme {
   --background: #09090b;
   --foreground: #fafafa;
@@ -143,6 +99,20 @@
   --success-rgb: 16, 185, 129;
   --warning-rgb: 245, 158, 11;
   --error-rgb: 239, 68, 68;
+}
+
+/* Force dark theme globally */
+* {
+  color-scheme: dark;
+}
+
+html {
+  color-scheme: dark;
+  background: var(--background);
+}
+
+body {
+  color-scheme: dark;
 }
 
 /* Reset and base styles */

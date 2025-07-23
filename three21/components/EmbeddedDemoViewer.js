@@ -9,7 +9,7 @@ import { Toast } from './Toast';
 import * as THREE from 'three';
 
 // Optimized Layer Manager Hook with memoized calculations
-function useOptimizedLayerManager(modelRef, disassembleDistance = 40) {
+function useOptimizedLayerManager(modelRef, disassembleDistance = 110) {
     const [currentLayer, setCurrentLayer] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
     const [isAssembled, setIsAssembled] = useState(true);
@@ -29,7 +29,7 @@ function useOptimizedLayerManager(modelRef, disassembleDistance = 40) {
     const animationRef = useRef({
         isActive: false,
         startTime: 0,
-        duration: 500,
+        duration: 200,
         targets: [],
         type: 'none'
     });
@@ -382,7 +382,7 @@ export default function EmbeddedDemoViewer({
         currentLayer,
         totalLayers,
         isInitialized
-    } = useOptimizedLayerManager(modelRef, 40); // Increased distance for better visibility
+    } = useOptimizedLayerManager(modelRef, 80); // Increased distance for better visibility
 
     // Toast state for object clicking
     const [toast, setToast] = useState({ message: '', isVisible: false });
@@ -429,7 +429,7 @@ export default function EmbeddedDemoViewer({
                 className="model-canvas-container"
             >
                 <Canvas
-                    camera={{ position: [65, 200, 150], fov: 60 }}
+                    camera={{ position: [305, 450, 300], fov: 60 }}
                     shadows
                     gl={{
                         antialias: true,
@@ -474,8 +474,8 @@ export default function EmbeddedDemoViewer({
                         dampingFactor={0.1}
                         enableZoom={true}
                         enablePan={true}
-                        maxDistance={200}
-                        minDistance={30}
+                        maxDistance={1000}
+                        minDistance={350}
                     />
                     <Environment preset="studio" background={false} />
                     <AnimationController updateAnimation={updateAnimation} />
@@ -579,6 +579,7 @@ export default function EmbeddedDemoViewer({
                     height: 100%;
                     background: transparent;
                     border-radius: var(--radius);
+                    border: 1px solid var(--border);
                 }
 
                 .animation-indicator {

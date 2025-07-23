@@ -4,13 +4,13 @@ import Link from "next/link";
 import { Suspense, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
-import { 
-  Upload, 
-  Smile, 
-  ArrowRight, 
-  Zap, 
-  Eye, 
-  Image, 
+import {
+  Upload,
+  Smile,
+  ArrowRight,
+  Zap,
+  Eye,
+  Image,
   Loader
 } from 'react-feather';
 
@@ -114,7 +114,7 @@ export default function Home() {
                     <ArrowRight className="btn-icon" size={16} aria-hidden="true" />
                   </button>
                 </Link>
-                
+
                 {/* Demo Link */}
                 <Link
                   href="/model?type=demo"
