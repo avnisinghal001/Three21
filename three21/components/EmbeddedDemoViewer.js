@@ -429,7 +429,7 @@ export default function EmbeddedDemoViewer({
                 className="model-canvas-container"
             >
                 <Canvas
-                    camera={{ position: [305, 450, 300], fov: 60 }}
+                    camera={{ position: [105, 250, 200], fov: 60 }}
                     shadows
                     gl={{
                         antialias: true,
