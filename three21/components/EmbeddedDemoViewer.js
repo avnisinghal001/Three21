@@ -9,7 +9,7 @@ import { Toast } from './Toast';
 import * as THREE from 'three';
 
 // Optimized Layer Manager Hook with memoized calculations
-function useOptimizedLayerManager(modelRef, disassembleDistance = 110) {
+function useOptimizedLayerManager(modelRef, disassembleDistance = 80) {
     const [currentLayer, setCurrentLayer] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
     const [isAssembled, setIsAssembled] = useState(true);
@@ -197,7 +197,7 @@ function useOptimizedLayerManager(modelRef, disassembleDistance = 110) {
         animationRef.current = {
             isActive: true,
             startTime: Date.now(),
-            duration: 500,
+            duration: 250,
             targets: animationTargets,
             type: 'disassemble'
         };
@@ -251,7 +251,7 @@ function useOptimizedLayerManager(modelRef, disassembleDistance = 110) {
         animationRef.current = {
             isActive: true,
             startTime: Date.now(),
-            duration: 500,
+            duration: 250,
             targets: animationTargets,
             type: 'assemble'
         };
