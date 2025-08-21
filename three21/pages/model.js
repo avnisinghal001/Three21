@@ -460,6 +460,19 @@ export default function ModelPage() {
                 enableTTS={true}
             />
 
+            <VoiceOnboardingModal 
+                isVisible={showVoiceOnboarding} 
+                onClose={() => setShowVoiceOnboarding(false)}
+                onComplete={(preferences) => {
+                    setVoicePreferences(preferences);
+                    setShowVoiceOnboarding(false);
+                }}
+            />
+
+            <VoiceStatusPopup 
+                isVisible={voiceStatusVisible}
+                onClose={() => setVoiceStatusVisible(false)}
+            />
         </>
     );
 }

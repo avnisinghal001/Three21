@@ -83,7 +83,16 @@ export default function Three21Bot({
         if (preferences) {
             const parsed = JSON.parse(preferences);
             setVoicePreferences(parsed);
-            setIsTTSEnabled(parsed.audioEnabled);
+            setIsTTSEnabled(parsed.audioEnabled !== false); // Default to true unless explicitly disabled
+        } else {
+            // Default voice preferences if none exist
+            const defaultPreferences = {
+                language: 'en-IN',
+                audioEnabled: true
+            };
+            setVoicePreferences(defaultPreferences);
+            setIsTTSEnabled(true);
+            console.log('🔊 TTS enabled by default');
         }
     }, []);
 
@@ -136,7 +145,14 @@ export default function Three21Bot({
 
     // TTS functionality using Sarvam directly with Gemini enhancement via API
     const speakMessage = async (text) => {
-        if (!isTTSEnabled || !voicePreferences || isPlaying) return;
+        // More lenient TTS check - allow if user has not explicitly disabled it
+        const shouldSpeak = isTTSEnabled && !isPlaying;
+        console.log('🔊 TTS Check:', { isTTSEnabled, isPlaying, voicePreferences, shouldSpeak });
+        
+        if (!shouldSpeak) {
+            console.log('🔇 TTS skipped:', { isTTSEnabled, isPlaying });
+            return;
+        }
         
         try {
             setIsPlaying(true);
@@ -202,23 +218,44 @@ export default function Three21Bot({
                     const audioBase64 = responseTTS.audios[0];
                     const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
                     
+                    // Set volume to ensure audibility
+                    audio.volume = 1.0;
+                    
                     // Wait for this chunk to finish before playing the next
                     await new Promise((resolve, reject) => {
-                        audio.onended = resolve;
-                        audio.onerror = reject;
-                        audio.play().catch(reject);
+                        audio.onended = () => {
+                            console.log(`✅ Chunk ${i + 1} finished playing`);
+                            resolve();
+                        };
+                        audio.onerror = (e) => {
+                            console.error(`❌ Audio playback error for chunk ${i + 1}:`, e);
+                            reject(e);
+                        };
+                        audio.play().then(() => {
+                            console.log(`▶️ Playing chunk ${i + 1} (${chunk.length} chars)`);
+                        }).catch(reject);
                     });
                     
                     // Small pause between chunks for natural flow
                     if (i < textChunks.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 300));
+                        await new Promise(resolve => setTimeout(resolve, 500)); // Slightly longer pause
                     }
+                } else {
+                    console.error('❌ No audio data received from Sarvam TTS for chunk:', chunk);
+                    throw new Error('TTS failed to generate audio');
                 }
             }
             
             setIsPlaying(false);
+            console.log('✅ TTS playback completed successfully');
         } catch (error) {
-            console.error('Enhanced TTS failed:', error);
+            console.error('❌ Enhanced TTS failed:', error);
+            console.error('TTS Error Details:', {
+                isTTSEnabled,
+                voicePreferences,
+                textLength: text?.length,
+                error: error.message
+            });
             setIsPlaying(false);
         }
     };
@@ -266,16 +303,29 @@ export default function Three21Bot({
                             clearTimeout(autoSendTimer);
                         }
                         
-                        // Set auto-send timer for 3 seconds
+                        // Set auto-send timer for 10 seconds (more relaxation time)
                         const timer = setTimeout(() => {
-                            if (newText.trim()) {
-                                console.log('🤖 Auto-sending after 3 seconds of silence...');
+                            // Don't auto-send if bot is currently speaking (more relaxation)
+                            if (newText.trim() && !isPlaying) {
+                                console.log('🤖 Auto-sending after 10 seconds of silence...');
                                 sendMessage(newText);
                                 speechRecognitionManager.stopListening();
                                 setIsListening(false);
+                            } else if (isPlaying) {
+                                console.log('🤖 Auto-send delayed - bot is speaking');
+                                // Reset timer if bot is still speaking
+                                const delayTimer = setTimeout(() => {
+                                    if (newText.trim() && !isPlaying) {
+                                        sendMessage(newText);
+                                        speechRecognitionManager.stopListening();
+                                        setIsListening(false);
+                                    }
+                                }, 5000); // Additional 5 second delay
+                                setAutoSendTimer(delayTimer);
+                                return;
                             }
                             setAutoSendTimer(null);
-                        }, 3000);
+                        }, 10000); // Changed from 3000 to 10000 (10 seconds)
                         
                         setAutoSendTimer(timer);
                     } else {
