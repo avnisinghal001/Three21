@@ -40,6 +40,13 @@ export default function Three21Bot({
         }
     }, [isOpen, modelInfo, demoConfig, chatLoaded]);
 
+    // Reset chat loaded state when model changes to force reload
+    useEffect(() => {
+        setChatLoaded(false);
+        setMessages([]); // Clear existing messages when model changes
+        console.log('🔄 Model changed - resetting chat state');
+    }, [modelInfo?.filename, modelInfo?.fileSize, demoConfig?.filename]); // Track specific model identifiers
+
     // Save chat when messages change
     useEffect(() => {
         if (chatLoaded && messages.length > 0 && (modelInfo || demoConfig)) {
@@ -431,6 +438,14 @@ What aspect of your model would you like to explore first?`,
             showInitialGreeting();
         }
     }, [isOpen, modelInfo, demoConfig, autoScreenshot, selectedPart, sceneAnalysis]);
+
+    // Track selectedPart changes for debugging and state updates
+    useEffect(() => {
+        if (selectedPart) {
+            console.log('🎯 Selected part updated:', selectedPart);
+            // Force a re-render of the chat interface to show updated selected part
+        }
+    }, [selectedPart]);
 
     // Auto-scroll to bottom
     useEffect(() => {

@@ -44,15 +44,18 @@ class ChatStorageManager {
     generateModelId(modelInfo) {
         if (!modelInfo) return 'unknown-model';
         
-        // Create a unique ID based on filename, size, and other identifying info
+        // Create a more unique ID that includes URL/path, timestamp, and file info
         const components = [
             modelInfo.filename || 'unnamed',
             modelInfo.fileSize || 0,
             modelInfo.type || 'unknown',
-            modelInfo.description || ''
+            modelInfo.url || '',  // Include URL for better uniqueness
+            modelInfo.lastModified || '',  // Include modification time if available
+            modelInfo.description || '',
+            Date.now().toString().slice(-6)  // Add timestamp component for extra uniqueness
         ];
         
-        // Create a simple hash
+        // Create a more robust hash
         const hashInput = components.join('|');
         let hash = 0;
         for (let i = 0; i < hashInput.length; i++) {
@@ -61,7 +64,9 @@ class ChatStorageManager {
             hash = hash & hash; // Convert to 32-bit integer
         }
         
-        return `model_${Math.abs(hash)}`;
+        // Include filename in the ID for easier identification
+        const cleanFilename = (modelInfo.filename || 'model').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+        return `${cleanFilename}_${Math.abs(hash)}`;
     }
 
     /**
