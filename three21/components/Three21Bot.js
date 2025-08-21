@@ -1329,7 +1329,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     }
                     
                     .three21-bot-container {
-                        height: 100vh;
+                        height: 97dvh;
                         border-radius: 1rem;
                         max-width: none;
                     }
@@ -1494,7 +1494,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     }
                     
                     .three21-bot-container {
-                        height: 100vh;
+                        height: 97dvh;
                         border-radius: 12px;
                     }
                     
