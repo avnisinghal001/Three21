@@ -355,14 +355,6 @@ export default function Home() {
         onComplete={handleOnboardingComplete}
       />
 
-      {/* Voice Status Popup */}
-      <VoiceStatusPopup
-        preferences={voicePreferences}
-        isVisible={showStatusPopup}
-        onClose={() => setShowStatusPopup(false)}
-        onOpenSettings={handleOpenSettings}
-      />
-
 
       {/* Content Overlay */}
       <div className="content-overlay">
