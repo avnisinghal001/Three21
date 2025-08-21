@@ -11,9 +11,13 @@ import {
   Zap,
   Eye,
   Image,
-  Loader
+  Loader,
+  Volume2
 } from 'react-feather';
-
+import sarvam from "@/utils/sarvam";
+import VoiceOnboardingModal from '../components/VoiceOnboardingModal';
+import PersistentVoiceControl from '../components/PersistentVoiceControl';
+import VoiceStatusPopup from '../components/VoiceStatusPopup';
 
 // Dynamic import for the embedded demo viewer
 const EmbeddedDemoViewer = dynamic(() => import('../components/EmbeddedDemoViewer'), {
@@ -27,8 +31,243 @@ const EmbeddedDemoViewer = dynamic(() => import('../components/EmbeddedDemoViewe
   )
 });
 
+async function sarvamRun() {
+  try {
+    console.log("🎤 Starting Sarvam TTS test...");
+    
+    // 1. Translate text
+    const response = await sarvam.text.translate({
+      input: "I am Three Two one AI bot, your personal mentor cum assistance",
+      source_language_code: "auto",
+      target_language_code: "hi-IN",
+      speaker_gender: "Male"
+    });
+    console.log("Translation Response:", response);
+
+    // 2. Convert translated text into speech
+    const responseTTS = await sarvam.textToSpeech.convert({
+      text: response.translated_text,
+      // text: "Avni I love you",
+      speaker: "karun",
+      model:"bulbul:v2",
+      enable_preprocessing: true,
+      target_language_code: "hi-IN",
+    });
+    console.log("TTS Response:", responseTTS);
+
+    // 3. Get Base64 audio
+    const base64Audio = responseTTS.audios[0];
+
+    // 4. Convert Base64 -> Blob
+    const audioBlob = new Blob(
+      [Uint8Array.from(atob(base64Audio), c => c.charCodeAt(0))],
+      { type: "audio/wav" } // Or "audio/mp3" depending on API format
+    );
+
+    // 5. Create URL for playback
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    // 6. Play audio in browser with error handling
+    const audio = new Audio(audioUrl);
+    
+    try {
+      await audio.play();
+      console.log("🎵 Audio played successfully!");
+    } catch (playError) {
+      if (playError.name === 'NotAllowedError') {
+        console.warn("🚫 Auto-play blocked. Creating play button...");
+        
+        // Create a play button for user interaction
+        const playButton = document.createElement("button");
+        playButton.innerHTML = "🔊 Play Sarvam TTS Audio";
+        playButton.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          z-index: 10000;
+          background: linear-gradient(45deg, #007bff, #0056b3);
+          color: white;
+          border: none;
+          padding: 15px 25px;
+          border-radius: 25px;
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: bold;
+          box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+          transition: transform 0.2s;
+        `;
+        
+        playButton.onmouseover = () => playButton.style.transform = "translateY(-2px)";
+        playButton.onmouseout = () => playButton.style.transform = "translateY(0)";
+        
+        playButton.onclick = async () => {
+          try {
+            await audio.play();
+            playButton.remove();
+            console.log("🎵 Audio played after user interaction!");
+          } catch (err) {
+            console.error("❌ Manual play failed:", err);
+            playButton.innerHTML = "❌ Play Failed";
+            setTimeout(() => playButton.remove(), 2000);
+          }
+        };
+        
+        document.body.appendChild(playButton);
+        
+        // Auto-remove after 15 seconds
+        setTimeout(() => {
+          if (document.contains(playButton)) {
+            playButton.remove();
+          }
+        }, 15000);
+      } else {
+        throw playError;
+      }
+    }
+
+    // 7. Create a download link automatically
+    const link = document.createElement("a");
+    link.href = audioUrl;
+    link.download = "three21_tts_output.wav";
+    link.innerText = "Download TTS Audio";
+    link.style.cssText = `
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 10000;
+      background: #28a745;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 20px;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    `;
+    document.body.appendChild(link);
+    
+    // Auto-remove download link after 30 seconds
+    setTimeout(() => {
+      if (document.contains(link)) {
+        link.remove();
+        URL.revokeObjectURL(audioUrl);
+      }
+    }, 3000);
+
+    console.log("✅ Sarvam TTS test completed successfully!");
+    return { success: true, message: "TTS test completed!" };
+
+  } catch (err) {
+    console.error("❌ Error in sarvamRun:", err);
+    
+    // Show error to user
+    const errorDiv = document.createElement("div");
+    errorDiv.innerHTML = `❌ Sarvam TTS Error: ${err.message}`;
+    errorDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      background: #dc3545;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      max-width: 300px;
+      font-weight: bold;
+    `;
+    document.body.appendChild(errorDiv);
+    
+    setTimeout(() => errorDiv.remove(), 5000);
+    
+    return { success: false, error: err.message };
+  }
+}
+
 export default function Home() {
   const [isAssembled, setIsAssembled] = useState(true);
+
+  // New states for onboarding and voice control
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [voicePreferences, setVoicePreferences] = useState(null);
+  const [showStatusPopup, setShowStatusPopup] = useState(false);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
+
+  // Check if user has completed onboarding
+  useEffect(() => {
+    const storedPreferences = localStorage.getItem('three21-voice-preferences');
+    if (storedPreferences) {
+      const preferences = JSON.parse(storedPreferences);
+      setVoicePreferences(preferences);
+      // Show status popup if voice is enabled
+      if (preferences.voiceEnabled) {
+        setTimeout(() => setShowStatusPopup(true), 2000);
+      }
+    } else {
+      // Show onboarding modal for new users
+      setTimeout(() => setShowOnboarding(true), 1000);
+    }
+  }, []);
+
+  const handleOnboardingComplete = (preferences) => {
+    setVoicePreferences(preferences);
+    setShowOnboarding(false);
+    
+    // Store preferences
+    localStorage.setItem('three21-voice-preferences', JSON.stringify(preferences));
+    
+    // Show status popup
+    if (preferences.voiceEnabled) {
+      setTimeout(() => setShowStatusPopup(true), 1000);
+    }
+  };
+
+  const handleVoiceToggle = (listening) => {
+    setIsVoiceListening(listening);
+  };
+
+  const handleOpenSettings = () => {
+    setShowStatusPopup(false);
+    setShowOnboarding(true);
+  };
+
+  // Function to programmatically click the demo button
+  const handleVoiceDemo = () => {
+    console.log('Voice command: Going to demo');
+    // Navigate to demo page
+    window.location.href = '/model?type=demo';
+  };
+
+  // Voice command handlers for AI integration
+  const handleVoiceUpload = () => {
+    console.log('Voice command: Going to upload');
+    window.location.href = '/import-model';
+  };
+
+  const handleVoiceHome = () => {
+    console.log('Voice command: Going to home');
+    window.location.href = '/';
+  };
+
+  const handleVoiceTest = () => {
+    console.log('Voice command: Testing voice');
+    // Trigger the existing Sarvam TTS test
+    sarvamRun();
+  };
+
+  // Test function to trigger voice demo (can be called from console)
+  const testVoiceDemo = () => {
+    console.log('Testing voice demo navigation');
+    handleVoiceDemo();
+  };
+
+  // Make test functions available globally for debugging
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.testVoiceDemo = testVoiceDemo;
+      window.testVoiceUpload = handleVoiceUpload;
+      window.testVoiceHome = handleVoiceHome;
+      window.testVoiceTest = handleVoiceTest;
+    }
+  }, []);
 
   useEffect(() => {
     // Load Vanta.js scripts
@@ -51,7 +290,34 @@ export default function Home() {
         });
       }
     };
+    
+    // Voice command event listeners
+    const handleVoiceNavigateDemo = (event) => {
+      console.log('Voice command received: Navigate to demo');
+      handleVoiceDemo();
+    };
 
+    const handleVoiceNavigateUpload = (event) => {
+      console.log('Voice command received: Navigate to upload');
+      handleVoiceUpload();
+    };
+
+    const handleVoiceNavigateHome = (event) => {
+      console.log('Voice command received: Navigate to home');
+      handleVoiceHome();
+    };
+
+    const handleVoiceTestFunction = (event) => {
+      console.log('Voice command received: Test voice');
+      handleVoiceTest();
+    };
+
+    // Listen for voice commands
+    window.addEventListener('voiceNavigateDemo', handleVoiceNavigateDemo);
+    window.addEventListener('voiceNavigateUpload', handleVoiceNavigateUpload);
+    window.addEventListener('voiceNavigateHome', handleVoiceNavigateHome);
+    window.addEventListener('voiceTestFunction', handleVoiceTestFunction);
+    
     // Add Three.js script
     const threeScript = document.createElement('script');
     threeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
@@ -69,6 +335,11 @@ export default function Home() {
       if (window.VANTA) {
         window.VANTA.current && window.VANTA.current.destroy();
       }
+      // Remove event listeners
+      window.removeEventListener('voiceNavigateDemo', handleVoiceNavigateDemo);
+      window.removeEventListener('voiceNavigateUpload', handleVoiceNavigateUpload);
+      window.removeEventListener('voiceNavigateHome', handleVoiceNavigateHome);
+      window.removeEventListener('voiceTestFunction', handleVoiceTestFunction);
     };
   }, []);
 
@@ -76,6 +347,22 @@ export default function Home() {
     <div className="min-h-screen bg-background relative">
       {/* Vanta Fog Background */}
       <div id="vanta-bg" className="vanta-background"></div>
+
+      {/* Onboarding Modal */}
+      <VoiceOnboardingModal 
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onComplete={handleOnboardingComplete}
+      />
+
+      {/* Voice Status Popup */}
+      <VoiceStatusPopup
+        preferences={voicePreferences}
+        isVisible={showStatusPopup}
+        onClose={() => setShowStatusPopup(false)}
+        onOpenSettings={handleOpenSettings}
+      />
+
 
       {/* Content Overlay */}
       <div className="content-overlay">
@@ -112,17 +399,20 @@ export default function Home() {
                     <Upload className="btn-icon" size={16} aria-hidden="true" />
                     <span className="btn-text">Upload Model</span>
                     <ArrowRight className="btn-icon" size={16} aria-hidden="true" />
+                    
                   </button>
                 </Link>
 
                 {/* Demo Link */}
                 <Link
                   href="/model?type=demo"
-                  className="demo-link-container "
+                  className="demo-link-container"
+                  id="voice-demo-button"
                 >
                   <button className="btn-demo" aria-label="Try demo model">
                     <Smile className="btn-icon" size={16} aria-hidden="true" />
                     <span className="btn-text">Try Demo</span>
+                    
                   </button>
                 </Link>
               </div>
@@ -291,6 +581,98 @@ export default function Home() {
           border-color: var(--secondary-accent);
           transform: translateY(-1px);
           box-shadow: 0 4px 12px rgba(var(--secondary-rgb), 0.15);
+        }
+
+        /* Voice Indicator */
+        .voice-indicator {
+          position: absolute;
+          top: -5px;
+          right: -5px;
+          background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+          color: white;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          animation: voicePulse 2s infinite;
+          border: 2px solid white;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes voicePulse {
+          0%, 100% { 
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% { 
+            transform: scale(1.1);
+            opacity: 0.8;
+          }
+        }
+
+        /* Sarvam TTS Test Button */
+        .btn-sarvam-test {
+          margin-left: 1rem;
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          height: 3rem;
+          padding: 0 1.5rem;
+          border: 2px solid transparent;
+          background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+          color: white;
+          border-radius: var(--radius);
+          font-size: 0.875rem;
+          font-weight: 600;
+          font-family: inherit;
+          text-decoration: none;
+          outline: none;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          overflow: hidden;
+          user-select: none;
+          white-space: nowrap;
+          min-width: 160px;
+          box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-sarvam-test:focus-visible {
+          outline: 2px solid #ff6b6b;
+          outline-offset: 2px;
+        }
+
+        .btn-sarvam-test:hover:not(:disabled) {
+          transform: translateY(-3px) scale(1.05);
+          box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+          background: linear-gradient(135deg, #ff5252, #26a69a);
+        }
+
+        .btn-sarvam-test:active {
+          transform: translateY(-1px) scale(1.02);
+          box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-sarvam-test .btn-icon:first-child {
+          animation: pulse 2s infinite;
+        }
+
+        .btn-sarvam-test .btn-icon:last-child {
+          animation: sparkle 1.5s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.7; }
+        }
+
+        @keyframes sparkle {
+          0%, 100% { transform: rotate(0deg); }
+          50% { transform: rotate(180deg); }
         }
 
         /* Beautiful Upload Button - Same as Demo Viewer */

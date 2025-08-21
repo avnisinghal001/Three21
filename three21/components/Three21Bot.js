@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import html2canvas from 'html2canvas';
+import { Volume2, VolumeX, Mic, MicOff } from 'react-feather';
 import AIPromptGenerator from './AIPromptGenerator';
 import { ScreenshotManager } from './ScreenshotManager';
 import chatStorageManager from './ChatStorageManager';
+import sarvam from '@/utils/sarvam';
+import speechRecognitionManager from '@/utils/speechRecognitionManager';
 export default function Three21Bot({ 
     isOpen, 
     onClose, 
@@ -20,6 +23,13 @@ export default function Three21Bot({
     const [screenshot, setScreenshot] = useState(autoScreenshot);
     const [chatLoaded, setChatLoaded] = useState(false);
     const [aiPromptGenerator] = useState(() => new AIPromptGenerator());
+    const [isTTSEnabled, setIsTTSEnabled] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [voicePreferences, setVoicePreferences] = useState(null);
+    const [isListening, setIsListening] = useState(false);
+    const [speechTranscript, setSpeechTranscript] = useState('');
+    const [speechError, setSpeechError] = useState('');
+    const [autoSendTimer, setAutoSendTimer] = useState(null);
     const messagesEndRef = useRef(null);
     const chatContainerRef = useRef(null);
 
@@ -64,6 +74,242 @@ export default function Three21Bot({
             await chatStorageManager.saveChatForModel(chatModelInfo, messages);
         } catch (error) {
             console.error('Failed to save chat:', error);
+        }
+    };
+
+    // Load voice preferences on component mount
+    useEffect(() => {
+        const preferences = localStorage.getItem('voicePreferences');
+        if (preferences) {
+            const parsed = JSON.parse(preferences);
+            setVoicePreferences(parsed);
+            setIsTTSEnabled(parsed.audioEnabled);
+        }
+    }, []);
+
+    // Helper function to chunk text into smaller parts
+    const chunkText = (text, maxLength = 2400) => {
+        if (text.length <= maxLength) return [text];
+        
+        const chunks = [];
+        let currentChunk = '';
+        
+        // Split by sentences first
+        const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+        
+        for (const sentence of sentences) {
+            const trimmedSentence = sentence.trim();
+            if (!trimmedSentence) continue;
+            
+            // If adding this sentence would exceed limit, start new chunk
+            if (currentChunk.length + trimmedSentence.length + 2 > maxLength) {
+                if (currentChunk) {
+                    chunks.push(currentChunk.trim());
+                    currentChunk = '';
+                }
+                
+                // If single sentence is too long, split by words
+                if (trimmedSentence.length > maxLength) {
+                    const words = trimmedSentence.split(' ');
+                    let wordChunk = '';
+                    
+                    for (const word of words) {
+                        if (wordChunk.length + word.length + 1 > maxLength) {
+                            if (wordChunk) chunks.push(wordChunk.trim());
+                            wordChunk = word;
+                        } else {
+                            wordChunk += (wordChunk ? ' ' : '') + word;
+                        }
+                    }
+                    if (wordChunk) chunks.push(wordChunk.trim());
+                } else {
+                    currentChunk = trimmedSentence + '.';
+                }
+            } else {
+                currentChunk += (currentChunk ? ' ' : '') + trimmedSentence + '.';
+            }
+        }
+        
+        if (currentChunk) chunks.push(currentChunk.trim());
+        return chunks.filter(chunk => chunk.length > 0);
+    };
+
+    // TTS functionality using Sarvam directly with Gemini enhancement via API
+    const speakMessage = async (text) => {
+        if (!isTTSEnabled || !voicePreferences || isPlaying) return;
+        
+        try {
+            setIsPlaying(true);
+            const language = voicePreferences.language || 'en-IN';
+            
+            if (!text || text.length === 0) {
+                setIsPlaying(false);
+                return;
+            }
+            
+            console.log('🤖 Enhancing speech with Gemini API...');
+            
+            let speechText = text;
+            
+            // Enhance speech using existing Gemini API endpoint
+            try {
+                const enhanceResponse = await fetch('/api/enhance-speech', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        topic: 'Technical 3D Model Analysis',
+                        audience: 'Technical professionals'
+                    })
+                });
+
+                if (enhanceResponse.ok) {
+                    const enhanceData = await enhanceResponse.json();
+                    if (enhanceData.success) {
+                        speechText = enhanceData.enhanced;
+                        console.log('✅ Speech enhanced successfully');
+                        console.log(`� Length: ${enhanceData.originalLength} → ${enhanceData.enhancedLength}`);
+                    } else {
+                        console.warn('Speech enhancement failed, using original text');
+                    }
+                } else {
+                    console.warn('Speech enhancement API failed, using original text');
+                }
+            } catch (enhanceError) {
+                console.warn('Speech enhancement error:', enhanceError);
+                console.log('Using original text for TTS');
+            }
+            
+            // Split text into chunks if it's too long
+            const textChunks = chunkText(speechText);
+            console.log(`📝 Text split into ${textChunks.length} chunks`);
+            
+            // Play each chunk sequentially
+            for (let i = 0; i < textChunks.length; i++) {
+                const chunk = textChunks[i];
+                console.log(`🔊 Playing chunk ${i + 1}/${textChunks.length} (${chunk.length} chars)`);
+                
+                // Use Sarvam TTS with proper format
+                const responseTTS = await sarvam.textToSpeech.convert({
+                    text: chunk,
+                    speaker: "karun",
+                    model: "bulbul:v2",
+                    enable_preprocessing: true,
+                    target_language_code: language,
+                });
+                
+                if (responseTTS && responseTTS.audios && responseTTS.audios[0]) {
+                    const audioBase64 = responseTTS.audios[0];
+                    const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+                    
+                    // Wait for this chunk to finish before playing the next
+                    await new Promise((resolve, reject) => {
+                        audio.onended = resolve;
+                        audio.onerror = reject;
+                        audio.play().catch(reject);
+                    });
+                    
+                    // Small pause between chunks for natural flow
+                    if (i < textChunks.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                    }
+                }
+            }
+            
+            setIsPlaying(false);
+        } catch (error) {
+            console.error('Enhanced TTS failed:', error);
+            setIsPlaying(false);
+        }
+    };
+
+    const toggleTTS = () => {
+        const newState = !isTTSEnabled;
+        setIsTTSEnabled(newState);
+        
+        // Update preferences in localStorage
+        if (voicePreferences) {
+            const updatedPreferences = { ...voicePreferences, audioEnabled: newState };
+            setVoicePreferences(updatedPreferences);
+            localStorage.setItem('voicePreferences', JSON.stringify(updatedPreferences));
+        }
+    };
+
+    // Speech-to-text functionality with auto-send
+    const toggleSpeechRecognition = () => {
+        if (!speechRecognitionManager.isSupported()) {
+            setSpeechError('Speech recognition not supported in this browser');
+            return;
+        }
+
+        if (isListening) {
+            // Stop listening
+            speechRecognitionManager.stopListening();
+            setIsListening(false);
+            // Clear any pending auto-send timer
+            if (autoSendTimer) {
+                clearTimeout(autoSendTimer);
+                setAutoSendTimer(null);
+            }
+        } else {
+            // Start listening
+            const started = speechRecognitionManager.startListening({
+                onResult: (result) => {
+                    if (result.final) {
+                        // Add the final transcript to input
+                        const newText = inputMessage + (inputMessage ? ' ' : '') + result.final.trim();
+                        setInputMessage(newText);
+                        setSpeechTranscript('');
+                        
+                        // Clear any existing timer
+                        if (autoSendTimer) {
+                            clearTimeout(autoSendTimer);
+                        }
+                        
+                        // Set auto-send timer for 3 seconds
+                        const timer = setTimeout(() => {
+                            if (newText.trim()) {
+                                console.log('🤖 Auto-sending after 3 seconds of silence...');
+                                sendMessage(newText);
+                                speechRecognitionManager.stopListening();
+                                setIsListening(false);
+                            }
+                            setAutoSendTimer(null);
+                        }, 3000);
+                        
+                        setAutoSendTimer(timer);
+                    } else {
+                        // Show interim results
+                        setSpeechTranscript(result.interim);
+                    }
+                },
+                onError: (error) => {
+                    setSpeechError(error.message);
+                    setIsListening(false);
+                    if (autoSendTimer) {
+                        clearTimeout(autoSendTimer);
+                        setAutoSendTimer(null);
+                    }
+                },
+                onStart: () => {
+                    setIsListening(true);
+                    setSpeechError('');
+                    console.log('🎤 Started listening...');
+                },
+                onEnd: () => {
+                    setIsListening(false);
+                    setSpeechTranscript('');
+                    if (autoSendTimer) {
+                        clearTimeout(autoSendTimer);
+                        setAutoSendTimer(null);
+                    }
+                    console.log('🎤 Stopped listening');
+                }
+            });
+
+            if (!started) {
+                setSpeechError('Failed to start speech recognition');
+            }
         }
     };
 
@@ -224,6 +470,11 @@ What aspect of your model would you like to explore first?`,
 
             setMessages(prev => [...prev, assistantMessage]);
             
+            // Speak the assistant's response if TTS is enabled
+            if (isTTSEnabled && data.content) {
+                setTimeout(() => speakMessage(data.content), 500); // Small delay to ensure UI updates
+            }
+            
             // Clear screenshot after use
             if (screenshotData) {
                 setScreenshot(null);
@@ -281,6 +532,35 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                                 <span>🎯 Focus: {typeof selectedPart === 'object' ? selectedPart.name : selectedPart}</span>
                             </div>
                         )}
+                    </div>
+                    <div className="header-controls">
+                        <button 
+                            className={`tts-button ${isTTSEnabled ? 'active' : ''}`}
+                            onClick={toggleTTS}
+                            title={isTTSEnabled ? 'Disable Text-to-Speech' : 'Enable Text-to-Speech'}
+                            disabled={isPlaying}
+                        >
+                            {isPlaying ? (
+                                <Volume2 className="icon-spin" size={16} />
+                            ) : isTTSEnabled ? (
+                                <Volume2 size={16} />
+                            ) : (
+                                <VolumeX size={16} />
+                            )}
+                        </button>
+                        
+                        <button 
+                            className={`speech-button ${isListening ? 'listening' : ''}`}
+                            onClick={toggleSpeechRecognition}
+                            title={isListening ? 'Stop Speech Recognition' : 'Start Speech Recognition'}
+                            disabled={!speechRecognitionManager.isSupported()}
+                        >
+                            {isListening ? (
+                                <Mic className="icon-pulse" size={16} />
+                            ) : (
+                                <MicOff size={16} />
+                            )}
+                        </button>
                     </div>
                     <button className="close-button" onClick={onClose}>
                         ✕
@@ -353,14 +633,38 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     </div>
                     
                     <form onSubmit={handleSubmit} className="input-form">
-                        <input
-                            type="text"
-                            value={inputMessage}
-                            onChange={(e) => setInputMessage(e.target.value)}
-                            placeholder="Ask about the model, parts, or engineering insights..."
-                            disabled={isLoading}
-                            className="message-input"
-                        />
+                        <div className="input-container">
+                            <input
+                                type="text"
+                                value={inputMessage}
+                                onChange={(e) => setInputMessage(e.target.value)}
+                                placeholder="Ask about the model, parts, or engineering insights..."
+                                disabled={isLoading}
+                                className="message-input"
+                            />
+                            
+                            {/* Speech recognition feedback */}
+                            {isListening && (
+                                <div className="speech-feedback">
+                                    <div className="speech-status">
+                                        <span className="speech-indicator">🎤 Listening...</span>
+                                        {autoSendTimer && (
+                                            <span className="auto-send-indicator">Auto-send in 3s</span>
+                                        )}
+                                    </div>
+                                    {speechTranscript && (
+                                        <div className="interim-text">{speechTranscript}</div>
+                                    )}
+                                </div>
+                            )}
+                            
+                            {speechError && (
+                                <div className="speech-error">
+                                    ⚠️ {speechError}
+                                </div>
+                            )}
+                        </div>
+                        
                         <button 
                             type="submit" 
                             disabled={isLoading || !inputMessage.trim()}
@@ -400,8 +704,8 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
 
                 .three21-bot-container {
                     width: 100%;
-                    max-width: 56rem;
-                    height: 85vh;
+                    max-width: 65rem;
+                    height: 76vh;
                     background: #1f2937;
                     border: 1px solid #374151;
                     border-radius: 20px;
@@ -504,6 +808,29 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     color: #6b7280;
                     width: 2.5rem;
                     height: 2.5rem;
+                    border-radius: px;
+                    cursor: pointer;
+                    font-size: 1rem;
+                    margin-left: .5rem;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    padding: 1.2rem;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .header-controls {
+                    display: flex;
+                    gap: 0.5rem;
+                    align-items: center;
+                }
+
+                .tts-button {
+                    background: #f3f4f6;
+                    border: 1px solid #d1d5db;
+                    color: #6b7280;
+                    width: 2.5rem;
+                    height: 2.5rem;
                     border-radius: 12px;
                     cursor: pointer;
                     font-size: 1rem;
@@ -511,6 +838,150 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                }
+
+                .tts-button.active {
+                    background: #10b981;
+                    border-color: #059669;
+                    color: white;
+                }
+
+                .tts-button:hover {
+                    background: #e5e7eb;
+                    border-color: #9ca3af;
+                }
+
+                .tts-button.active:hover {
+                    background: #059669;
+                }
+
+                .tts-button:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+                .speech-button {
+                    background: #f3f4f6;
+                    border: 1px solid #d1d5db;
+                    color: #6b7280;
+                    width: 2.5rem;
+                    height: 2.5rem;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    font-size: 1rem;
+                    transition: all 0.2s ease;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .speech-button.listening {
+                    background: #ef4444;
+                    border-color: #dc2626;
+                    color: white;
+                }
+
+                .speech-button:hover {
+                    background: #e5e7eb;
+                    border-color: #9ca3af;
+                }
+
+                .speech-button.listening:hover {
+                    background: #dc2626;
+                }
+
+                .speech-button:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+                .icon-pulse {
+                    animation: pulse 1.5s infinite;
+                }
+
+                @keyframes pulse {
+                    0% { opacity: 1; }
+                    50% { opacity: 0.5; }
+                    100% { opacity: 1; }
+                }
+
+                .input-container {
+                    flex: 1;
+                    position: relative;
+                    width: full;
+                }
+
+                .speech-feedback {
+                    position: absolute;
+                    top: -3.5rem;
+                    left: 0;
+                    right: 0;
+                    background: #1f2937;
+                    border: 1px solid #10b981;
+                    border-radius: 12px;
+                    padding: 0.75rem;
+                    font-size: 0.8rem;
+                    color: #10b981;
+                    z-index: 1000;
+                    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+                }
+
+                .speech-status {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 0.5rem;
+                }
+
+                .speech-indicator {
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .auto-send-indicator {
+                    font-size: 0.7rem;
+                    color: #f59e0b;
+                    font-weight: 500;
+                    background: rgba(245, 158, 11, 0.1);
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 6px;
+                    border: 1px solid rgba(245, 158, 11, 0.3);
+                }
+
+                .interim-text {
+                    color: #9ca3af;
+                    font-style: italic;
+                    background: #374151;
+                    padding: 0.5rem;
+                    border-radius: 8px;
+                    border: 1px solid #4b5563;
+                    margin-top: 0.5rem;
+                }
+
+                .speech-error {
+                    position: absolute;
+                    top: -3rem;
+                    left: 0;
+                    right: 0;
+                    background: #1f2937;
+                    border: 1px solid #ef4444;
+                    border-radius: 12px;
+                    padding: 0.75rem;
+                    font-size: 0.8rem;
+                    color: #ef4444;
+                    z-index: 1000;
+                    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+                }
+
+                .icon-spin {
+                    animation: spin 1s linear infinite;
+                }
+
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
 
                 .close-button:hover {
@@ -672,6 +1143,7 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
 
                 .message-input {
                     flex: 1;
+                    width: 100%;
                     background: #1f2937;
                     border: 1px solid #374151;
                     border-radius: 14px;
@@ -807,33 +1279,33 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     }
                     
                     .three21-bot-container {
-                        height: 98vh;
-                        border-radius: 16px;
+                        height: 100vh;
+                        border-radius: 1rem;
                         max-width: none;
                     }
                     
                     .three21-bot-header {
-                        padding: 0.75rem 1rem;
+                        padding: 1rem 1.25rem;
                     }
                     
                     .three21-bot-messages {
-                        padding: 0.75rem 1rem;
+                        padding: 1rem 1.25rem;
                         gap: 1rem;
                     }
                     
                     .three21-bot-input {
-                        padding: 0.75rem 1rem;
+                        padding: 1rem 1.25rem;
                     }
                     
                     .message-content {
-                        max-width: 98%;
-                        padding: 0.75rem 1rem;
-                        font-size: 0.8rem;
+                        max-width: 95%;
+                        padding: 1rem;
+                        font-size: 0.875rem;
                         line-height: 1.5;
                     }
                     
                     .header-content {
-                        gap: 0.5rem;
+                        gap: 0.75rem;
                     }
                     
                     .selected-part {
@@ -841,31 +1313,41 @@ The AI focuses on technical analysis of your 3D model. Please rephrase your ques
                     }
                     
                     .quick-actions {
-                        gap: 0.375rem;
-                        margin-bottom: 0.75rem;
+                        gap: 0.5rem;
+                        margin-bottom: 1rem;
                     }
                     
                     .bot-avatar {
-                        width: 2.5rem;
-                        height: 2.5rem;
-                        font-size: 1rem;
-                        border-radius: 12px;
+                        width: 3rem;
+                        height: 3rem;
+                        font-size: 1.125rem;
+                        border-radius: 0.875rem;
                     }
                     
-                    .bot-info h3 {
-                        font-size: 1rem;
+                    .speech-feedback {
+                        top: -4rem;
+                        padding: 1rem;
+                        font-size: 0.875rem;
                     }
                     
-                    .bot-status {
-                        font-size: 0.75rem;
+                    .interim-text {
+                        padding: 0.75rem;
+                        margin-top: 0.75rem;
+                        font-size: 0.8rem;
+                    }
+                    
+                    .tts-button, .speech-button {
+                        width: 2.75rem;
+                        height: 2.75rem;
+                        border-radius: 0.75rem;
                     }
                     
                     .close-button {
-                        width: 2rem;
-                        height: 2rem;
-                        font-size: 0.875rem;
-                        border-radius: 10px;
+                        width: 2.75rem;
+                        height: 2.75rem;
+                        border-radius: 0.75rem;
                     }
+                }
                     
                     .quick-action-btn {
                         padding: 0.5rem 0.75rem;

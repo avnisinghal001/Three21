@@ -4,13 +4,13 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import * as THREE from 'three';
 
-export const InteractiveModelPrimitive = forwardRef(({ url, type, onModelLoad, onObjectClick, targetSize = 100, enableAutoScale = true }, ref) => {
+export const InteractiveModelPrimitive = forwardRef(({ url, type, onModelLoad, onObjectClick, userScale = 1, enableAutoScale = false }, ref) => {
     // Load the model
     const object = useLoader(type === 'fbx' ? FBXLoader : GLTFLoader, url);
     const scene = type === 'fbx' ? object : object.scene;
     const [modelInfo, setModelInfo] = useState({ originalSize: null, scale: 1, boundingBox: null });
     
-    // Calculate model scale for normalization
+    // Calculate model information without normalization
     const calculateModelScale = (scene) => {
         const box = new THREE.Box3().setFromObject(scene);
         const size = box.getSize(new THREE.Vector3());
@@ -29,15 +29,14 @@ export const InteractiveModelPrimitive = forwardRef(({ url, type, onModelLoad, o
                 center: box.getCenter(new THREE.Vector3()).toArray(),
                 size: size.toArray()
             },
-            scale: enableAutoScale ? targetSize / maxDimension : 1
+            scale: 1  // Keep original scale, let user control it
         };
         
-        console.log('Model Scale Info:', {
+        console.log('Model Info (Original Scale):', {
             originalSize: `${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`,
             maxDimension: maxDimension.toFixed(2),
-            targetSize: targetSize,
-            calculatedScale: modelInfo.scale.toFixed(4),
-            autoScaleEnabled: enableAutoScale
+            userScale: userScale,
+            autoScaleDisabled: !enableAutoScale
         });
         
         return modelInfo;
@@ -51,10 +50,8 @@ export const InteractiveModelPrimitive = forwardRef(({ url, type, onModelLoad, o
                 const scaleInfo = calculateModelScale(scene);
                 setModelInfo(scaleInfo);
                 
-                // Apply scale if auto-scaling is enabled
-                if (enableAutoScale) {
-                    scene.scale.set(scaleInfo.scale, scaleInfo.scale, scaleInfo.scale);
-                }
+                // Apply user-controlled scale (no auto-normalization)
+                scene.scale.set(userScale, userScale, userScale);
                 
                 // Center the model
                 const box = new THREE.Box3().setFromObject(scene);
@@ -158,6 +155,14 @@ export const InteractiveModelPrimitive = forwardRef(({ url, type, onModelLoad, o
             onModelLoad(scene, modelInfo);
         }
     }, [scene, onModelLoad, modelInfo]);
+
+    // Update model scale when userScale prop changes
+    useEffect(() => {
+        if (scene) {
+            scene.scale.set(userScale, userScale, userScale);
+            console.log('Applied user scale:', userScale);
+        }
+    }, [scene, userScale]);
 
     // Cleanup function to dispose of materials and geometries
     useEffect(() => {

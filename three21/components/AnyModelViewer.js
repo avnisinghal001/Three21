@@ -1,4 +1,4 @@
-import { Suspense, useRef, useCallback, useEffect, useState } from 'react';
+import { Suspense, useRef, useCallback, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment } from '@react-three/drei';
 import { InteractiveModelPrimitive } from './InteractiveModelPrimitive';
@@ -14,11 +14,12 @@ import { DEMO_CONFIG } from '@/pages/model';
 
 import html2canvas from 'html2canvas';
 
-export default function AnyModelViewer({ url, type, isDemoMode = false, demoConfig = null }) {
+export default forwardRef(function AnyModelViewer({ url, type, isDemoMode = false, demoConfig = null, onModelLoad }, ref) {
     const modelRef = useRef();
     const canvasRef = useRef();
     const highlightManagerRef = useRef(null);
     const screenshotManagerRef = useRef(null);
+    const orbitControlsRef = useRef();
     
     // Separation distance state for disassembly
     const [separationDistance, setSeparationDistance] = useState(80);  // Better demo value
@@ -30,13 +31,12 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
     // Auto-screenshot state
     const [autoScreenshotTaken, setAutoScreenshotTaken] = useState(false);
     
-    // Model scale and normalization state
+    // Model scale state - user controllable
     const [modelScale, setModelScale] = useState({
         originalSize: null,
-        normalizedScale: 1,
+        currentScale: 1,
         boundingBox: null,
-        targetSize: 100,
-        autoScale: true
+        userScale: 1  // User-controlled scale multiplier
     });
     
     const { initializeLayers, currentLayer, isAnimating, totalLayers, updateAnimation } = useLayerManager(modelRef, separationDistance);
@@ -60,6 +60,190 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
     
     // Use demo config from props or context
     const activeDemoConfig = demoConfig || contextDemoConfig;
+
+    // Expose functions to parent via ref
+    useImperativeHandle(ref, () => ({
+        expandModel: () => {
+            console.log('🎯 AnyModelViewer: Expanding model');
+            if (currentLayer < totalLayers - 1) {
+                updateAnimation(currentLayer + 1);
+                setToast({ message: 'Model expanded', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        },
+        assembleModel: () => {
+            console.log('🎯 AnyModelViewer: Assembling model');
+            if (currentLayer > 0) {
+                updateAnimation(0);
+                setToast({ message: 'Model assembled', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        },
+        rotateModel: () => {
+            console.log('🎯 AnyModelViewer: Rotating model');
+            if (orbitControlsRef.current) {
+                // Rotate the model by updating the azimuth angle
+                orbitControlsRef.current.setAzimuthalAngle(orbitControlsRef.current.getAzimuthalAngle() + Math.PI / 4);
+                orbitControlsRef.current.update();
+                setToast({ message: 'Model rotated', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        },
+        zoomIn: () => {
+            console.log('🎯 AnyModelViewer: Zooming in');
+            if (orbitControlsRef.current) {
+                const camera = orbitControlsRef.current.object;
+                const distance = orbitControlsRef.current.getDistance();
+                orbitControlsRef.current.dollyIn(0.8);
+                orbitControlsRef.current.update();
+                setToast({ message: 'Zoomed in', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        },
+        zoomOut: () => {
+            console.log('🎯 AnyModelViewer: Zooming out');
+            if (orbitControlsRef.current) {
+                orbitControlsRef.current.dollyOut(1.25);
+                orbitControlsRef.current.update();
+                setToast({ message: 'Zoomed out', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        },
+        resetView: () => {
+            console.log('🎯 AnyModelViewer: Resetting view');
+            if (orbitControlsRef.current) {
+                orbitControlsRef.current.reset();
+                setToast({ message: 'View reset', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        },
+        takeScreenshot: () => {
+            console.log('🎯 AnyModelViewer: Taking screenshot');
+            takeScreenshot();
+        }
+    }), [currentLayer, totalLayers, updateAnimation]);
+
+    // AI Voice Command Event Listeners
+    useEffect(() => {
+        const handleModelExpand = (event) => {
+            console.log('📢 AnyModelViewer: Received expand event');
+            if (currentLayer < totalLayers - 1) {
+                updateAnimation(currentLayer + 1);
+                setToast({ message: 'Model expanded via voice', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        };
+
+        const handleModelAssemble = (event) => {
+            console.log('📢 AnyModelViewer: Received assemble event');
+            if (currentLayer > 0) {
+                updateAnimation(0);
+                setToast({ message: 'Model assembled via voice', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        };
+
+        const handleRotateModel = (event) => {
+            console.log('📢 AnyModelViewer: Received rotate event');
+            if (orbitControlsRef.current) {
+                const direction = event.detail?.direction || 'right';
+                const angle = direction === 'left' ? -Math.PI / 4 : Math.PI / 4;
+                orbitControlsRef.current.setAzimuthalAngle(orbitControlsRef.current.getAzimuthalAngle() + angle);
+                orbitControlsRef.current.update();
+                setToast({ message: `Model rotated ${direction}`, isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        };
+
+        const handleZoomIn = (event) => {
+            console.log('📢 AnyModelViewer: Received zoom in event');
+            if (orbitControlsRef.current) {
+                orbitControlsRef.current.dollyIn(0.8);
+                orbitControlsRef.current.update();
+                setToast({ message: 'Zoomed in via voice', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        };
+
+        const handleZoomOut = (event) => {
+            console.log('📢 AnyModelViewer: Received zoom out event');
+            if (orbitControlsRef.current) {
+                orbitControlsRef.current.dollyOut(1.25);
+                orbitControlsRef.current.update();
+                setToast({ message: 'Zoomed out via voice', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        };
+
+        const handleResetView = (event) => {
+            console.log('📢 AnyModelViewer: Received reset view event');
+            if (orbitControlsRef.current) {
+                orbitControlsRef.current.reset();
+                setToast({ message: 'View reset via voice', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        };
+
+        const handleTakeScreenshot = (event) => {
+            console.log('📢 AnyModelViewer: Received screenshot event');
+            takeScreenshot();
+            setToast({ message: 'Screenshot taken via voice', isVisible: true });
+            setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+        };
+
+        const handleToggleChat = (event) => {
+            console.log('📢 AnyModelViewer: Received toggle chat event');
+            if (setIsAIOpen) {
+                setIsAIOpen(!isAIOpen);
+                setToast({ message: isAIOpen ? 'Chat closed' : 'Chat opened', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        };
+
+        const handleOpenChat = (event) => {
+            console.log('📢 AnyModelViewer: Received open chat event');
+            if (setIsAIOpen) {
+                setIsAIOpen(true);
+                setToast({ message: 'Chat opened via voice', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        };
+
+        const handleCloseChat = (event) => {
+            console.log('📢 AnyModelViewer: Received close chat event');
+            if (setIsAIOpen) {
+                setIsAIOpen(false);
+                setToast({ message: 'Chat closed via voice', isVisible: true });
+                setTimeout(() => setToast({ message: '', isVisible: false }), 2000);
+            }
+        };
+
+        // Listen for AI voice command events
+        window.addEventListener('modelExpand', handleModelExpand);
+        window.addEventListener('modelAssemble', handleModelAssemble);
+        window.addEventListener('rotateModel', handleRotateModel);
+        window.addEventListener('zoomIn', handleZoomIn);
+        window.addEventListener('zoomOut', handleZoomOut);
+        window.addEventListener('resetView', handleResetView);
+        window.addEventListener('takeScreenshot', handleTakeScreenshot);
+        window.addEventListener('toggleChat', handleToggleChat);
+        window.addEventListener('openChat', handleOpenChat);
+        window.addEventListener('closeChat', handleCloseChat);
+
+        // Cleanup event listeners
+        return () => {
+            window.removeEventListener('modelExpand', handleModelExpand);
+            window.removeEventListener('modelAssemble', handleModelAssemble);
+            window.removeEventListener('rotateModel', handleRotateModel);
+            window.removeEventListener('zoomIn', handleZoomIn);
+            window.removeEventListener('zoomOut', handleZoomOut);
+            window.removeEventListener('resetView', handleResetView);
+            window.removeEventListener('takeScreenshot', handleTakeScreenshot);
+            window.removeEventListener('toggleChat', handleToggleChat);
+            window.removeEventListener('openChat', handleOpenChat);
+            window.removeEventListener('closeChat', handleCloseChat);
+        };
+    }, [currentLayer, totalLayers, updateAnimation, isAIOpen, setIsAIOpen]);
     
     // Load model info when component mounts
     useEffect(() => {
@@ -94,15 +278,14 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
         console.log('Model loaded, scene:', scene);
         console.log('Scale info:', scaleInfo);
         
-        // Store scale information
+        // Store original scale information without normalization
         if (scaleInfo) {
-            setModelScale({
+            setModelScale(prev => ({
                 originalSize: scaleInfo.originalSize,
-                normalizedScale: scaleInfo.scale,
+                currentScale: 1,  // Keep original scale
                 boundingBox: scaleInfo.boundingBox,
-                targetSize: 100,
-                autoScale: true
-            });
+                userScale: prev.userScale  // Preserve user's scale setting
+            }));
         }
         if (modelRef.current) {
             // Initialize layer system after model loads
@@ -147,7 +330,12 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                 }
             }, 100);
         }
-    }, [initializeLayers, isDemoMode, extractModelStructure, autoScreenshotTaken, modelInfo, setIsAIOpen]);
+
+        // Notify parent component that model is loaded
+        if (onModelLoad) {
+            onModelLoad(scene, scaleInfo);
+        }
+    }, [initializeLayers, isDemoMode, extractModelStructure, autoScreenshotTaken, modelInfo, setIsAIOpen, onModelLoad]);
 
     // Handle object click with part selection and highlighting
     const handleObjectClick = useCallback((objectName, clickedObject) => {
@@ -268,6 +456,18 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
         }
     }, []);
 
+    const handleScaleChange = useCallback((newScale) => {
+        setModelScale(prev => ({
+            ...prev,
+            userScale: newScale
+        }));
+        
+        // Apply scale to model if it's loaded
+        if (modelRef.current) {
+            modelRef.current.scale.set(newScale, newScale, newScale);
+        }
+    }, []);
+
     const handleOpenAI = useCallback(() => {
         if (setIsAIOpen) {
             setIsAIOpen(true);
@@ -363,13 +563,13 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                         ref={modelRef}
                         url={url} 
                         type={type} 
-                        targetSize={modelScale.targetSize}
-                        enableAutoScale={modelScale.autoScale}
+                        userScale={modelScale.userScale}
+                        enableAutoScale={false}
                         onModelLoad={handleModelLoad}
                         onObjectClick={handleObjectClick}
                     />
                 </Suspense>
-                <OrbitControls enableDamping dampingFactor={0.1} />
+                <OrbitControls ref={orbitControlsRef} enableDamping dampingFactor={0.1} />
                 <Environment preset="night" background={false} />
                 <AnimationController updateAnimation={updateAnimation} />
             </Canvas>
@@ -386,6 +586,7 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                 onHighlightColorChange={setHighlightColor}
                 onHighlightOpacityChange={setHighlightOpacity}
                 modelScale={modelScale}
+                onScaleChange={handleScaleChange}
             />
 
             {isAIOpen && closeAI && (
@@ -406,7 +607,8 @@ export default function AnyModelViewer({ url, type, isDemoMode = false, demoConf
                 message={toast.message}
                 isVisible={toast.isVisible}
                 onHide={hideToast}
+                enableTTS={toast.message.includes('via voice')} // Enable TTS for voice commands
             />
         </div>
     );
-}
+});

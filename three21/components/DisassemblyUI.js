@@ -26,7 +26,8 @@ export function DisassemblyUI({
     highlightOpacity = 0.7,
     onHighlightColorChange,
     onHighlightOpacityChange,
-    modelScale = null
+    modelScale = null,
+    onScaleChange
 }) {
     const [showInstructions, setShowInstructions] = useState(true);
     const [showStatus, setShowStatus] = useState(true);
@@ -212,25 +213,43 @@ export function DisassemblyUI({
                         </div>
                     </div>
                     
-                    {/* Model Scale Information */}
+                    {/* Model Scale Control */}
                     {modelScale && modelScale.originalSize && (
                         <div className="status-row">
                             <span className="status-label">
                                 <BarChart size={14} aria-hidden="true" />
                                 Scale:
                             </span>
-                            <div className="scale-info">
-                                <div className="scale-details">
-                                    <span className="scale-value">
-                                        {modelScale.normalizedScale.toFixed(3)}x
-                                    </span>
-                                    <div 
-                                        className="original-size" 
-                                        title={`Original: ${modelScale.originalSize.width.toFixed(1)} × ${modelScale.originalSize.height.toFixed(1)} × ${modelScale.originalSize.depth.toFixed(1)}`}
-                                    >
-                                        <Eye size={12} aria-hidden="true" />
-                                        {modelScale.originalSize.maxDimension.toFixed(1)} units
-                                    </div>
+                            <div className="scale-control">
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="5.0"
+                                    step="0.1"
+                                    value={modelScale?.userScale || 1}
+                                    onChange={(e) => onScaleChange && onScaleChange(parseFloat(e.target.value))}
+                                    className="scale-slider"
+                                    disabled={isAnimating}
+                                    aria-label={`Model scale: ${modelScale?.userScale || 1}x`}
+                                />
+                                <input
+                                    type="number"
+                                    min="0.1"
+                                    max="5.0"
+                                    step="0.1"
+                                    value={modelScale?.userScale || 1}
+                                    onChange={(e) => onScaleChange && onScaleChange(parseFloat(e.target.value))}
+                                    className="scale-number-input"
+                                    disabled={isAnimating}
+                                    aria-label="Model scale value"
+                                />
+                                <span className="scale-value" aria-hidden="true">{modelScale?.userScale || 1}x</span>
+                                <div 
+                                    className="original-size-info" 
+                                    title={`Original: ${modelScale.originalSize.width.toFixed(1)} × ${modelScale.originalSize.height.toFixed(1)} × ${modelScale.originalSize.depth.toFixed(1)}`}
+                                >
+                                    <Eye size={12} aria-hidden="true" />
+                                    {modelScale.originalSize.maxDimension.toFixed(1)} units
                                 </div>
                             </div>
                         </div>
@@ -530,7 +549,7 @@ export function DisassemblyUI({
                     transform: translateX(-50%);
                     background: var(--gradient-primary);
                     border: none;
-                    color: var(--primary-foreground);
+                    color: white;
                     padding: 0.75rem 1.25rem;
                     border-radius: 16px;
                     cursor: pointer;
@@ -714,7 +733,7 @@ export function DisassemblyUI({
                     }
                 }
 
-                .distance-control, .highlight-control {
+                .distance-control, .highlight-control, .scale-control {
                     display: flex;
                     align-items: center;
                     gap: 0.375rem;
@@ -723,12 +742,12 @@ export function DisassemblyUI({
                 }
 
                 @media (min-width: 768px) {
-                    .distance-control, .highlight-control {
+                    .distance-control, .highlight-control, .scale-control {
                         gap: 0.5rem;
                     }
                 }
 
-                .distance-slider, .opacity-slider {
+                .distance-slider, .opacity-slider, .scale-slider {
                     flex: 1;
                     height: 3px;
                     background: var(--muted);
@@ -739,14 +758,15 @@ export function DisassemblyUI({
                 }
 
                 @media (min-width: 768px) {
-                    .distance-slider, .opacity-slider {
+                    .distance-slider, .opacity-slider, .scale-slider {
                         height: 4px;
                         min-width: 80px;
                     }
                 }
 
                 .distance-slider::-webkit-slider-thumb,
-                .opacity-slider::-webkit-slider-thumb {
+                .opacity-slider::-webkit-slider-thumb,
+                .scale-slider::-webkit-slider-thumb {
                     appearance: none;
                     width: 14px;
                     height: 14px;
@@ -760,19 +780,21 @@ export function DisassemblyUI({
 
                 @media (min-width: 768px) {
                     .distance-slider::-webkit-slider-thumb,
-                    .opacity-slider::-webkit-slider-thumb {
+                    .opacity-slider::-webkit-slider-thumb,
+                    .scale-slider::-webkit-slider-thumb {
                         width: 16px;
                         height: 16px;
                     }
                 }
 
                 .distance-slider::-webkit-slider-thumb:hover,
-                .opacity-slider::-webkit-slider-thumb:hover {
+                .opacity-slider::-webkit-slider-thumb:hover,
+                .scale-slider::-webkit-slider-thumb:hover {
                     transform: scale(1.2);
                     box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.4);
                 }
 
-                .distance-number-input {
+                .distance-number-input, .scale-number-input {
                     width: 60px;
                     height: 20px;
                     padding: 0.125rem 0.25rem;
@@ -795,12 +817,12 @@ export function DisassemblyUI({
                     }
                 }
 
-                .distance-number-input:focus {
+                .distance-number-input:focus, .scale-number-input:focus {
                     border-color: var(--primary-accent);
                     box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
                 }
 
-                .distance-value, .opacity-value {
+                .distance-value, .opacity-value, .scale-value {
                     font-size: 0.65rem;
                     font-weight: 600;
                     color: var(--primary-accent);
@@ -868,7 +890,7 @@ export function DisassemblyUI({
                     color: var(--primary-accent);
                 }
 
-                .original-size {
+                .original-size, .original-size-info {
                     font-size: 0.6rem;
                     color: var(--muted-foreground);
                     display: flex;

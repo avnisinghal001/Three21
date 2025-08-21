@@ -1,14 +1,79 @@
 import { useState, useEffect } from 'react';
+import sarvam from '@/utils/sarvam';
 
-export function Toast({ message, isVisible, onHide, duration = 3000 }) {
+export function Toast({ message, isVisible, onHide, duration = 3000, enableTTS = false }) {
+    const [isPlaying, setIsPlaying] = useState(false);
+
     useEffect(() => {
         if (isVisible) {
+            // Speak the toast message if TTS is enabled
+            if (enableTTS && message) {
+                speakToastMessage(message);
+            }
+            
             const timer = setTimeout(() => {
                 onHide();
             }, duration);
             return () => clearTimeout(timer);
         }
-    }, [isVisible, duration, onHide]);
+    }, [isVisible, duration, onHide, enableTTS, message]);
+
+    const speakToastMessage = async (text) => {
+        if (isPlaying) return;
+        
+        try {
+            setIsPlaying(true);
+            
+            // Get voice preferences from localStorage
+            const preferences = localStorage.getItem('voicePreferences');
+            let language = 'en-IN';
+            let audioEnabled = false;
+            
+            if (preferences) {
+                const parsed = JSON.parse(preferences);
+                language = parsed.language || 'en-IN';
+                audioEnabled = parsed.audioEnabled;
+            }
+            
+            if (!audioEnabled) {
+                setIsPlaying(false);
+                return;
+            }
+            
+            // Clean text for TTS
+            const cleanText = text.replace(/[^\w\s]/g, '').trim();
+            if (cleanText.length === 0) {
+                setIsPlaying(false);
+                return;
+            }
+            
+            console.log('🔊 Speaking toast with Sarvam:', cleanText);
+            
+            // Use Sarvam TTS with proper format
+            const responseTTS = await sarvam.textToSpeech.convert({
+                text: cleanText,
+                speaker: "karun",
+                model: "bulbul:v2",
+                enable_preprocessing: true,
+                target_language_code: language,
+            });
+            
+            if (responseTTS && responseTTS.audios && responseTTS.audios[0]) {
+                const audioBase64 = responseTTS.audios[0];
+                const audio = new Audio(`data:audio/wav;base64,${audioBase64}`);
+                
+                audio.onended = () => setIsPlaying(false);
+                audio.onerror = () => setIsPlaying(false);
+                
+                await audio.play();
+            } else {
+                setIsPlaying(false);
+            }
+        } catch (error) {
+            console.error('Sarvam Toast TTS failed:', error);
+            setIsPlaying(false);
+        }
+    };
 
     if (!isVisible) return null;
 
