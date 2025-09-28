@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import * as THREE from 'three';
 
-export function useLayerManager(modelRef) {
+export function useLayerManager(modelRef, separationDistance = 0.2) {
     const [currentLayer, setCurrentLayer] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
     
@@ -12,12 +12,12 @@ export function useLayerManager(modelRef) {
     const animationRef = useRef({
         isActive: false,
         startTime: 0,
-        duration: 1000, // 1 second
+        duration: 500, // 1 second
         targets: [],
         type: 'none' // 'disassemble', 'reassemble'
     });
 
-    const disassembleDistance = 0.2;
+    const disassembleDistance = separationDistance;
 
     // Initialize layers using BFS - improved to catch all objects
     const initializeLayers = useCallback((object) => {
@@ -235,7 +235,7 @@ export function useLayerManager(modelRef) {
         animationRef.current = {
             isActive: true,
             startTime: Date.now(),
-            duration: 1500, // Slightly longer for smoother motion
+            duration: 500, // Slightly longer for smoother motion
             targets: animationTargets,
             type: 'disassemble'
         };
@@ -276,7 +276,7 @@ export function useLayerManager(modelRef) {
         animationRef.current = {
             isActive: true,
             startTime: Date.now(),
-            duration: 1200, // Slightly longer for smooth reassembly
+            duration: 500, // Slightly longer for smooth reassembly
             targets: animationTargets,
             type: 'reassemble'
         };
